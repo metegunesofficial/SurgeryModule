@@ -1,43 +1,176 @@
 import {
   Home,
   Mail,
-  Calendar,
   Activity,
   Shield,
   Users,
   Heart,
   FileText,
-  Database,
   Settings,
   HelpCircle,
   Bell,
   ExternalLink,
   Copy,
-  Play,
-  Eye,
-  TrendingUp,
-  BarChart3,
   ChevronDown,
   AlertTriangle,
   Clock,
   CheckCircle,
-  XCircle,
   Monitor,
   Thermometer,
-  Zap,
-  Wind,
   Scissors,
   TestTube,
-  Package,
-  Clipboard,
 } from "lucide-react";
+import { useMemo, useState } from "react";
+
+const allNotifications = [
+  {
+    id: "n1",
+    type: "critical",
+    title: "Sterilizasyon Döngüsü Hatası",
+    description:
+      "Ameliyathane 2'de sterilizasyon döngüsü #003 başarısız oldu. Acil müdahale gerekli.",
+    time: "2 dakika önce",
+    read: false,
+    icon: AlertTriangle,
+    color: "red",
+  },
+  {
+    id: "n2",
+    type: "warning",
+    title: "Sıcaklık Uyarısı",
+    description:
+      "Ameliyathane 1'de sıcaklık 25°C'ye yükseldi. Optimum aralık: 20-22°C",
+    time: "15 dakika önce",
+    read: false,
+    icon: Thermometer,
+    color: "orange",
+  },
+  {
+    id: "n3",
+    type: "system",
+    title: "Sterilizasyon Döngüsü Tamamlandı",
+    description:
+      "Döngü #002 başarıyla tamamlandı. 24 adet cerrahi alet sterilize edildi.",
+    time: "1 saat önce",
+    read: false,
+    icon: CheckCircle,
+    color: "green",
+  },
+  {
+    id: "n4",
+    type: "system",
+    title: "Personel Giriş Kaydı",
+    description: "Hemşire Ayşe Kaya, Ameliyathane 1'e giriş yaptı.",
+    time: "2 saat önce",
+    read: true,
+    icon: Users,
+    color: "blue",
+  },
+  {
+    id: "n5",
+    type: "system",
+    title: "Günlük Rapor Hazır",
+    description:
+      "10 Ağustos 2025 tarihi için günlük operasyon raporu oluşturuldu.",
+    time: "3 saat önce",
+    read: true,
+    icon: FileText,
+    color: "purple",
+  },
+  {
+    id: "n6",
+    type: "system",
+    title: "Ameliyat Başarıyla Tamamlandı",
+    description:
+      "Dr. Atilla tarafından gerçekleştirilen implant cerrahisi başarıyla tamamlandı.",
+    time: "4 saat önce",
+    read: false,
+    icon: Scissors,
+    color: "green",
+  },
+  {
+    id: "n7",
+    type: "maintenance",
+    title: "TV Ekran Sistemi Güncellendi",
+    description:
+      "Ameliyathane TV ekran sistemi güncellendi. Yeni hasta bilgi paneli aktif.",
+    time: "6 saat önce",
+    read: true,
+    icon: Monitor,
+    color: "indigo",
+  },
+  {
+    id: "n8",
+    type: "maintenance",
+    title: "HVAC Sistemi Bakımı",
+    description:
+      "Ameliyathane HVAC sistemi için aylık bakım zamanı geldi. Planlama gerekli.",
+    time: "Yarın",
+    read: false,
+    icon: Clock,
+    color: "yellow",
+  },
+  {
+    id: "n9",
+    type: "maintenance",
+    title: "Sterilizasyon Cihazı Kalibrasyonu",
+    description:
+      "Autoclave #1 için 6 aylık kalibrasyon kontrolü gerekli.",
+    time: "3 gün içinde",
+    read: false,
+    icon: TestTube,
+    color: "yellow",
+  },
+];
+
+const typeMeta = {
+  all: { label: "Tümü" },
+  critical: { label: "Kritik" },
+  system: { label: "Sistem" },
+  maintenance: { label: "Bakım" },
+};
 
 export default function BildirimlerPage() {
+  const [query, setQuery] = useState("");
+  const [activeType, setActiveType] = useState("all");
+  const [showRead, setShowRead] = useState(true);
+  const [notifications, setNotifications] = useState(allNotifications);
+
+  const filtered = useMemo(() => {
+    const byType =
+      activeType === "all"
+        ? notifications
+        : notifications.filter((n) => n.type === activeType);
+    const byRead = showRead ? byType : byType.filter((n) => !n.read);
+    const q = query.trim().toLowerCase();
+    if (!q) return byRead;
+    return byRead.filter(
+      (n) =>
+        n.title.toLowerCase().includes(q) ||
+        n.description.toLowerCase().includes(q)
+    );
+  }, [notifications, activeType, showRead, query]);
+
+  const counts = useMemo(() => {
+    const base = { all: notifications.length, critical: 0, system: 0, maintenance: 0 };
+    for (const n of notifications) {
+      // @ts-ignore
+      base[n.type] += 1;
+    }
+    return base;
+  }, [notifications]);
+
+  const markAllRead = () =>
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+
+  const toggleRead = (id) =>
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
+    );
+
   return (
     <div className="min-h-screen bg-gray-50 font-inter">
-      {/* Left Sidebar */}
       <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 z-20">
-        {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-6 border-b border-gray-200">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <Heart className="w-4 h-4 text-white" />
@@ -45,7 +178,6 @@ export default function BildirimlerPage() {
           <h1 className="text-xl font-semibold text-gray-900">Atilla Dental</h1>
         </div>
 
-        {/* Navigation */}
         <nav className="px-4 py-4">
           <div className="mb-6">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">GENEL</p>
@@ -59,7 +191,9 @@ export default function BildirimlerPage() {
                   <Mail className="w-4 h-4" />
                   <span>Bildirimler</span>
                 </div>
-                <span className="bg-blue-200 text-blue-700 text-xs px-2 py-1 rounded-full">7</span>
+                <span className="bg-blue-200 text-blue-700 text-xs px-2 py-1 rounded-full">
+                  {notifications.filter((n) => !n.read).length}
+                </span>
               </div>
             </div>
           </div>
@@ -97,7 +231,6 @@ export default function BildirimlerPage() {
           </div>
         </nav>
 
-        {/* Bottom Section */}
         <div className="absolute bottom-6 left-4 right-4">
           <div className="bg-gray-50 rounded-md p-3 text-sm">
             <p className="text-gray-900 font-medium">Ameliyathane 1 - Ana Oda</p>
@@ -115,9 +248,7 @@ export default function BildirimlerPage() {
         </div>
       </aside>
 
-      {/* Main Content */}
       <div className="ml-64">
-        {/* Top Header */}
         <header className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <nav className="flex space-x-8">
@@ -148,7 +279,6 @@ export default function BildirimlerPage() {
           </div>
         </header>
 
-        {/* Dashboard Content */}
         <main className="p-6">
           <nav className="text-sm text-gray-500 mb-4">
             <span>Atilla Dental</span>
@@ -156,126 +286,106 @@ export default function BildirimlerPage() {
             <span>Bildirimler</span>
           </nav>
 
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-semibold text-gray-900">Bildirimler</h1>
-            <div className="flex gap-3">
-              <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">
-                Tümünü Okundu İşaretle
+            <div className="flex gap-2">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Ara..."
+                className="h-9 w-64 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600"
+              />
+              <button
+                onClick={markAllRead}
+                className="h-9 px-3 rounded-md border border-gray-300 text-sm text-gray-600 hover:bg-gray-50"
+              >
+                Tümünü okundu işaretle
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6">
-            {/* Critical Alerts */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <AlertTriangle className="w-5 h-5 text-red-500" />
-                <h2 className="text-lg font-semibold text-gray-900">Kritik Uyarılar</h2>
+          <div className="flex flex-wrap items-center gap-2 mb-6">
+            {Object.entries(typeMeta).map(([key, meta]) => (
+              <button
+                key={key}
+                onClick={() => setActiveType(key)}
+                className={
+                  "h-8 rounded-full px-3 text-sm border transition-colors " +
+                  (activeType === key
+                    ? "border-blue-600 bg-blue-50 text-blue-700"
+                    : "border-gray-300 text-gray-600 hover:bg-gray-50")
+                }
+              >
+                {meta.label} ({counts[key] ?? 0})
+              </button>
+            ))}
+            <label className="ml-auto inline-flex items-center gap-2 text-sm text-gray-600">
+              <input
+                type="checkbox"
+                checked={showRead}
+                onChange={(e) => setShowRead(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              Okunmuşları göster
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3">
+            {filtered.map((n) => {
+              const Icon = n.icon;
+              const palette = {
+                red: "bg-red-50 border-red-200 text-red-900",
+                orange: "bg-orange-50 border-orange-200 text-orange-900",
+                green: "bg-green-50 border-green-200 text-green-900",
+                blue: "bg-blue-50 border-blue-200 text-blue-900",
+                purple: "bg-purple-50 border-purple-200 text-purple-900",
+                indigo: "bg-indigo-50 border-indigo-200 text-indigo-900",
+                yellow: "bg-yellow-50 border-yellow-200 text-yellow-900",
+              }[n.color];
+
+              return (
+                <div
+                  key={n.id}
+                  className={`flex items-start gap-3 p-4 border rounded-lg bg-white`}
+                >
+                  <div
+                    className={`mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded ${palette?.replace(
+                      " text-",
+                      " text-"
+                    )}`}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h3 className="font-medium text-gray-900">{n.title}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{n.description}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {!n.read && (
+                          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">Yeni</span>
+                        )}
+                        <span className="text-xs text-gray-500 whitespace-nowrap">{n.time}</span>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <button
+                        onClick={() => toggleRead(n.id)}
+                        className="h-8 rounded-md border border-gray-300 px-3 text-sm text-gray-600 hover:bg-gray-50"
+                      >
+                        {n.read ? "Okunmamış yap" : "Okundu işaretle"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {filtered.length === 0 && (
+              <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center text-sm text-gray-500">
+                Kriterlere uyan bildirim bulunamadı.
               </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5" />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-red-900">Sterilizasyon Döngüsü Hatası</h3>
-                    <p className="text-sm text-red-700 mt-1">Ameliyathane 2'de sterilizasyon döngüsü #003 başarısız oldu. Acil müdahale gerekli.</p>
-                    <p className="text-xs text-red-600 mt-2">2 dakika önce</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                  <Thermometer className="w-5 h-5 text-orange-500 mt-0.5" />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-orange-900">Sıcaklık Uyarısı</h3>
-                    <p className="text-sm text-orange-700 mt-1">Ameliyathane 1'de sıcaklık 25°C'ye yükseldi. Optimum aralık: 20-22°C</p>
-                    <p className="text-xs text-orange-600 mt-2">15 dakika önce</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* System Notifications */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Bell className="w-5 h-5 text-blue-500" />
-                <h2 className="text-lg font-semibold text-gray-900">Sistem Bildirimleri</h2>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">Sterilizasyon Döngüsü Tamamlandı</h3>
-                    <p className="text-sm text-gray-600 mt-1">Döngü #002 başarıyla tamamlandı. 24 adet cerrahi alet sterilize edildi.</p>
-                    <p className="text-xs text-gray-500 mt-2">1 saat önce</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg">
-                  <Users className="w-5 h-5 text-blue-500 mt-0.5" />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">Personel Giriş Kaydı</h3>
-                    <p className="text-sm text-gray-600 mt-1">Hemşire Ayşe Kaya, Ameliyathane 1'e giriş yaptı.</p>
-                    <p className="text-xs text-gray-500 mt-2">2 saat önce</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg">
-                  <FileText className="w-5 h-5 text-purple-500 mt-0.5" />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">Günlük Rapor Hazır</h3>
-                    <p className="text-sm text-gray-600 mt-1">10 Ağustos 2025 tarihi için günlük operasyon raporu oluşturuldu.</p>
-                    <p className="text-xs text-gray-500 mt-2">3 saat önce</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg">
-                  <Scissors className="w-5 h-5 text-green-500 mt-0.5" />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">Ameliyat Başarıyla Tamamlandı</h3>
-                    <p className="text-sm text-gray-600 mt-1">Dr. Atilla tarafından gerçekleştirilen implant cerrahisi başarıyla tamamlandı.</p>
-                    <p className="text-xs text-gray-500 mt-2">4 saat önce</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg">
-                  <Monitor className="w-5 h-5 text-indigo-500 mt-0.5" />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">TV Ekran Sistemi Güncellendi</h3>
-                    <p className="text-sm text-gray-600 mt-1">Ameliyathane TV ekran sistemi güncellendi. Yeni hasta bilgi paneli aktif.</p>
-                    <p className="text-xs text-gray-500 mt-2">6 saat önce</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Maintenance Reminders */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Settings className="w-5 h-5 text-yellow-500" />
-                <h2 className="text-lg font-semibold text-gray-900">Bakım Hatırlatıcıları</h2>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-start gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <Clock className="w-5 h-5 text-yellow-600 mt-0.5" />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-yellow-900">HVAC Sistemi Bakımı</h3>
-                    <p className="text-sm text-yellow-700 mt-1">Ameliyathane HVAC sistemi için aylık bakım zamanı geldi. Planlama gerekli.</p>
-                    <p className="text-xs text-yellow-600 mt-2">Yarın</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <TestTube className="w-5 h-5 text-yellow-600 mt-0.5" />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-yellow-900">Sterilizasyon Cihazı Kalibrasyonu</h3>
-                    <p className="text-sm text-yellow-700 mt-1">Autoclave #1 için 6 aylık kalibrasyon kontrolü gerekli.</p>
-                    <p className="text-xs text-yellow-600 mt-2">3 gün içinde</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </main>
       </div>
