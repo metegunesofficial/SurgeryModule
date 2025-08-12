@@ -1,231 +1,20 @@
 import {
-  Home,
-  Mail,
   Calendar,
-  Activity,
-  Shield,
-  Users,
-  Heart,
-  FileText,
-  Database,
-  Settings,
-  HelpCircle,
-  Bell,
   ExternalLink,
-  Copy,
-  Play,
   Eye,
-  TrendingUp,
-  BarChart3,
-  ChevronDown,
-  AlertTriangle,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Monitor,
-  Thermometer,
-  Zap,
-  Wind,
+  Play,
   Scissors,
-  TestTube,
-  Package,
-  Clipboard,
+  BarChart3,
+  CheckCircle,
+  Users,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function AtillaDentalDashboard() {
   return (
-    <div className="min-h-screen bg-gray-50 font-inter">
-      {/* Left Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 z-20">
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-6 border-b border-gray-200">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Heart className="w-4 h-4 text-white" />
-          </div>
-          <h1 className="text-xl font-semibold text-gray-900">Atilla Dental</h1>
-        </div>
-
-        {/* Navigation */}
-        <nav className="px-4 py-4">
-          <div className="mb-6">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              GENEL
-            </p>
-            <div className="space-y-1">
-              <div className="flex items-center gap-3 px-3 py-2 text-sm text-blue-600 bg-blue-50 rounded-md">
-                <Home className="w-4 h-4" />
-                <span>Dashboard</span>
-              </div>
-              <div className="flex items-center justify-between px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <Mail className="w-4 h-4" />
-                  <span>Bildirimler</span>
-                </div>
-                <span className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full">
-                  7
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              AMELİYATHANE
-            </p>
-            <div className="space-y-1">
-              <div className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md cursor-pointer">
-                <Scissors className="w-4 h-4" />
-                <span>Ameliyat Planlama</span>
-                <ChevronDown className="w-4 h-4 ml-auto" />
-              </div>
-              <div className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md cursor-pointer">
-                <Activity className="w-4 h-4" />
-                <span>Canlı İzleme</span>
-                <ChevronDown className="w-4 h-4 ml-auto" />
-              </div>
-              <div className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md cursor-pointer">
-                <Shield className="w-4 h-4" />
-                <span>Güvenlik</span>
-                <ChevronDown className="w-4 h-4 ml-auto" />
-              </div>
-              <div className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md cursor-pointer">
-                <Users className="w-4 h-4" />
-                <span>Personel</span>
-                <ChevronDown className="w-4 h-4 ml-auto" />
-              </div>
-              <div className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md cursor-pointer">
-                <Monitor className="w-4 h-4" />
-                <span>TV Ekranları</span>
-                <ChevronDown className="w-4 h-4 ml-auto" />
-              </div>
-              <div className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md cursor-pointer">
-                <FileText className="w-4 h-4" />
-                <span>Raporlar</span>
-                <ChevronDown className="w-4 h-4 ml-auto" />
-              </div>
-              <div className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md cursor-pointer">
-                <Clipboard className="w-4 h-4" />
-                <span>Kontrol Listeleri</span>
-                <ChevronDown className="w-4 h-4 ml-auto" />
-              </div>
-              <div className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md cursor-pointer">
-                <Database className="w-4 h-4" />
-                <span>Hasta Kayıtları</span>
-                <ChevronDown className="w-4 h-4 ml-auto" />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              STERİLİZASYON
-            </p>
-            <div className="space-y-1">
-              <div className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md cursor-pointer">
-                <TestTube className="w-4 h-4" />
-                <span>Döngü Yönetimi</span>
-              </div>
-              <div className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md cursor-pointer">
-                <HelpCircle className="w-4 h-4" />
-                <span>Kalite Kontrol</span>
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        {/* Bottom Section */}
-        <div className="absolute bottom-6 left-4 right-4">
-          <div className="bg-gray-50 rounded-md p-3 text-sm">
-            <p className="text-gray-900 font-medium">
-              Ameliyathane 1 - Ana Oda
-            </p>
-            <div className="flex gap-2 mt-2">
-              <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
-                <Copy className="w-3 h-3" />
-                <span className="text-xs">Rapor Kopyala</span>
-              </button>
-              <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
-                <ExternalLink className="w-3 h-3" />
-                <span className="text-xs">Canlı İzle</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <div className="ml-64">
-        {/* Top Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            {/* Navigation Tabs */}
-            <nav className="flex space-x-8">
-              <a
-                href="#"
-                className="text-blue-600 border-b-2 border-blue-600 pb-4 text-sm font-medium"
-              >
-                Ameliyathane
-              </a>
-              <a
-                href="#"
-                className="text-gray-500 hover:text-gray-700 pb-4 text-sm font-medium"
-              >
-                Sterilizasyon
-              </a>
-              <a
-                href="#"
-                className="text-gray-500 hover:text-gray-700 pb-4 text-sm font-medium"
-              >
-                TV Ekranları
-              </a>
-              <a
-                href="#"
-                className="text-gray-500 hover:text-gray-700 pb-4 text-sm font-medium"
-              >
-                Raporlar
-              </a>
-              <a
-                href="#"
-                className="text-gray-500 hover:text-gray-700 pb-4 text-sm font-medium"
-              >
-                SKS/JCI Uyumluluk
-              </a>
-            </nav>
-
-            {/* Right Section */}
-            <div className="flex items-center gap-4">
-              <Bell className="w-5 h-5 text-gray-400 cursor-pointer" />
-              <HelpCircle className="w-5 h-5 text-gray-400 cursor-pointer" />
-              <div className="flex items-center gap-2">
-                <img
-                  src="https://images.pexels.com/photos/5452201/pexels-photo-5452201.jpeg?auto=compress&cs=tinysrgb&w=40&h=40&dpr=1"
-                  alt="Dr. Atilla"
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-                <div className="text-sm">
-                  <p className="text-gray-900 font-medium">Dr. Atilla</p>
-                  <p className="text-gray-500 text-xs">
-                    atilla@altaydental.com
-                  </p>
-                </div>
-                <ChevronDown className="w-4 h-4 text-gray-400" />
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Dashboard Content */}
-        <main className="p-6">
-          {/* Breadcrumb */}
-          <nav className="text-sm text-gray-500 mb-4">
-            <span>Ameliyathane</span>
-            <span className="mx-2">›</span>
-            <span>Ana Oda/Dashbo...</span>
-          </nav>
-
-          {/* Dashboard Title */}
+    <>
+          {/* Başlık ve breadcrumb kaldırıldı */}
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
             <div className="flex gap-3">
               <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">
                 <Eye className="w-4 h-4" />
@@ -235,6 +24,9 @@ export default function AtillaDentalDashboard() {
                 <Play className="w-4 h-4" />
                 Sterilizasyon başlat
               </button>
+              <Link to="/canli-izleme" className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 border border-blue-200 rounded-md hover:bg-blue-50">
+                Canlı İzleme
+              </Link>
             </div>
           </div>
 
@@ -243,9 +35,7 @@ export default function AtillaDentalDashboard() {
             <div className="col-span-4 space-y-6">
               {/* Surgery Status */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">
-                  Ameliyathane 1/Dashboard
-                </h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">Durum</h3>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                   <span className="text-sm text-gray-600">Aktif</span>
@@ -274,9 +64,7 @@ export default function AtillaDentalDashboard() {
 
               {/* Operating Room List */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">
-                  Ameliyathane
-                </h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">Odalar</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -563,8 +351,6 @@ export default function AtillaDentalDashboard() {
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+    </>
   );
 }

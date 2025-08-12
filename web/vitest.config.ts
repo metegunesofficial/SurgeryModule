@@ -13,6 +13,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@auth/create/react': '@hono/auth-js/react',
+      '@auth/create': path.resolve(__dirname, './src/__create/@auth/create'),
     },
   },
   esbuild: {

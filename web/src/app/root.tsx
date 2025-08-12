@@ -27,14 +27,18 @@ import { SessionProvider } from '@auth/create/react';
 import { useNavigate } from 'react-router';
 import { serializeError } from 'serialize-error';
 import { Toaster } from 'sonner';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RBACProvider } from '@/utils/useRBAC.js';
 // @ts-ignore
 import { LoadFonts } from 'virtual:load-fonts.jsx';
 import { HotReloadIndicator } from '../__create/HotReload';
 import { useSandboxStore } from '../__create/hmr-sandbox-store';
 import type { Route } from './+types/root';
 import { useDevServerHeartbeat } from '../__create/useDevServerHeartbeat';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { Header } from '@/components/layout/Header';
 
-export const links: Route['links'] = () => [
+export const links: Route.LinksFunction = () => [
   { rel: 'stylesheet', href: globalStylesUrl },
 ];
 
@@ -380,7 +384,17 @@ export function Layout({ children }: { children: ReactNode }) {
         <LoadFonts />
       </head>
       <body>
-        <ClientOnly loader={() => children} />
+        <div className="min-h-screen bg-gray-50 font-inter">
+          <Sidebar />
+          <div className="ml-64">
+            <Header />
+            <main className="px-6 py-6">
+              <div className="w-full max-w-7xl mx-auto">
+                <ClientOnly loader={() => children} />
+              </div>
+            </main>
+          </div>
+        </div>
         <HotReloadIndicator />
         <Toaster position="bottom-right" />
         <ScrollRestoration />
@@ -391,10 +405,25 @@ export function Layout({ children }: { children: ReactNode }) {
   );
 }
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      cacheTime: 1000 * 60 * 30,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 export default function App() {
   return (
     <SessionProvider>
-      <Outlet />
+      <QueryClientProvider client={queryClient}>
+        <RBACProvider value={{ hasPermission: () => true }}>
+          <Outlet />
+        </RBACProvider>
+      </QueryClientProvider>
     </SessionProvider>
   );
 }
