@@ -128,6 +128,25 @@ function AmeliyatPlanlamaPage() {
                 </div>
               </div>
 
+              {/* SKS/JCI: WHO Surgical Safety Checklist */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">Cerrahi Güvenlik Kontrol Listesi</h3>
+                <div className="grid grid-cols-3 gap-3 text-sm">
+                  <div className="p-3 rounded border border-gray-200">
+                    <div className="text-gray-500">Sign-in</div>
+                    <div className="mt-1 font-medium text-gray-900">Kimlik/Onam doğrulandı</div>
+                  </div>
+                  <div className="p-3 rounded border border-gray-200">
+                    <div className="text-gray-500">Time-out</div>
+                    <div className="mt-1 font-medium text-gray-900">Takım onayı tamam</div>
+                  </div>
+                  <div className="p-3 rounded border border-gray-200">
+                    <div className="text-gray-500">Sign-out</div>
+                    <div className="mt-1 font-medium text-gray-900">Numuneler etiketli</div>
+                  </div>
+                </div>
+              </div>
+
               {/* World-class surgery module: Resource Utilization */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">Kaynak Kullanımı</h3>

@@ -28,7 +28,7 @@ import { useNavigate } from 'react-router';
 import { serializeError } from 'serialize-error';
 import { Toaster } from 'sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RBACProvider } from '@/utils/useRBAC.js';
+import { RBACProvider } from '@/utils/useRBAC.jsx';
 // @ts-ignore
 import { LoadFonts } from 'virtual:load-fonts.jsx';
 import { HotReloadIndicator } from '../__create/HotReload';
@@ -344,7 +344,6 @@ export function Layout({ children }: { children: ReactNode }) {
   useHandshakeParent();
   useCodeGen();
   useRefresh();
-  useDevServerHeartbeat();
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location?.pathname;
@@ -395,6 +394,8 @@ export function Layout({ children }: { children: ReactNode }) {
             </main>
           </div>
         </div>
+        {/* Mount dev heartbeat only on the client to avoid SSR crashes */}
+        <ClientOnly loader={() => <DevServerHeartbeat />} />
         <HotReloadIndicator />
         <Toaster position="bottom-right" />
         <ScrollRestoration />
@@ -409,7 +410,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5,
-      cacheTime: 1000 * 60 * 30,
+      gcTime: 1000 * 60 * 30,
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -426,4 +427,9 @@ export default function App() {
       </QueryClientProvider>
     </SessionProvider>
   );
+}
+
+function DevServerHeartbeat() {
+  useDevServerHeartbeat();
+  return null;
 }

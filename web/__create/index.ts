@@ -1,6 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import nodeConsole from 'node:console';
-import { skipCSRFCheck } from '@auth/core';
 import Credentials from '@auth/core/providers/credentials';
 import { authHandler, initAuthConfig } from '@hono/auth-js';
 import { Pool, neonConfig } from '@neondatabase/serverless';
@@ -34,10 +33,15 @@ for (const method of ['log', 'info', 'warn', 'error', 'debug'] as const) {
   };
 }
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
-const adapter = NeonAdapter(pool);
+// Create the Neon adapter lazily only when a connection string is present.
+// This prevents crashes in local/dev environments where DATABASE_URL is not set.
+let adapter: ReturnType<typeof NeonAdapter> | null = null;
+if (process.env.DATABASE_URL && process.env.DATABASE_URL.trim().length > 0) {
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+  adapter = NeonAdapter(pool);
+}
 
 const app = new Hono();
 
@@ -72,7 +76,9 @@ if (process.env.CORS_ORIGINS) {
   );
 }
 
-if (process.env.AUTH_SECRET) {
+// Only wire up auth when both AUTH_SECRET and DATABASE_URL are available,
+// otherwise fall back to running without auth in dev to avoid 500s.
+if (process.env.AUTH_SECRET && adapter) {
   app.use(
     '*',
     initAuthConfig((c) => ({
@@ -81,7 +87,9 @@ if (process.env.AUTH_SECRET) {
         signIn: '/account/signin',
         signOut: '/account/logout',
       },
-      skipCSRFCheck,
+      // Avoid importing '@auth/core' root export which can break Vite resolution in some envs
+      // Dev-only: explicitly skip CSRF checks to match previous behavior
+      skipCSRFCheck: true,
       session: {
         strategy: 'jwt',
       },

@@ -3,8 +3,8 @@ import { Users, Plus, Shield, Trash2, Edit, Search, UserCog, ToggleLeft, ToggleR
 import { useSession } from "@auth/create/react";
 
 function useRbac() {
-  const { data } = useSession();
-  const roles = Array.isArray(data?.user?.roles) ? data.user.roles : [];
+  const session = useSession?.();
+  const roles = Array.isArray(session?.data?.user?.roles) ? session.data.user.roles : [];
   const isAdmin = roles.includes("admin");
   const isManager = roles.includes("manager") || isAdmin;
   const canManageRoles = isAdmin;
@@ -127,6 +127,34 @@ export default function PersonelPage() {
         </div>
 
         <div className="col-span-4 space-y-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-sm font-semibold text-gray-900">Eğitim Uygunluğu</h3>
+            </div>
+            <div className="text-sm text-gray-700 space-y-2">
+              <p>Yıllık zorunlu eğitim tamamlanma oranı: %86</p>
+              <p>Eksik eğitimler: El hijyeni, Atık yönetimi</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-sm font-semibold text-gray-900">Yetkinlik Matriksi</h3>
+            </div>
+            <div className="text-sm text-gray-700">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="font-medium text-gray-900">Beceri</div>
+                <div className="font-medium text-gray-900">Gerekli</div>
+                <div className="font-medium text-gray-900">Mevcut</div>
+                <div>Sterilizasyon süreci</div>
+                <div>İleri</div>
+                <div>Orta</div>
+                <div>Aseptik teknik</div>
+                <div>İleri</div>
+                <div>İleri</div>
+              </div>
+            </div>
+          </div>
           {canManageRoles && (
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">

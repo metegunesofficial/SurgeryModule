@@ -173,6 +173,15 @@ export default function BildirimlerPage() {
         </div>
       </div>
 
+      {/* Compliance Badges Legend */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+        <h2 className="text-sm font-semibold text-gray-900 mb-2">Uyumluluk Rozetleri</h2>
+        <div className="flex gap-3 text-xs text-gray-700">
+          <span className="inline-flex items-center gap-2 px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">SKS</span>
+          <span className="inline-flex items-center gap-2 px-2 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200">JCI</span>
+        </div>
+      </div>
+
       <div className="flex flex-wrap items-center gap-2 mb-6">
         {Object.entries(typeMeta).map(([key, meta]) => (
           <button
@@ -227,6 +236,11 @@ export default function BildirimlerPage() {
                     {!n.read && (
                       <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">Yeni</span>
                     )}
+                    {/* static, non-text compliance badges on each card for visual context */}
+                    <div className="flex items-center gap-1" aria-label="Uyumluluk Rozetleri">
+                      <span className="inline-block w-2 h-2 rounded-full bg-blue-500" title="SKS" />
+                      <span className="inline-block w-2 h-2 rounded-full bg-purple-500" title="JCI" />
+                    </div>
                     <span className="text-xs text-gray-500 whitespace-nowrap">{n.time}</span>
                   </div>
                 </div>

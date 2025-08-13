@@ -31,6 +31,28 @@ export default function CanliIzlemePage() {
 
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-4 space-y-6">
+          {/* SKS/JCI: Aseptic & Access & Hand Hygiene */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">Aseptik Alan Uyarıları</h3>
+            <div className="text-sm text-gray-700 space-y-2">
+              <p>Alan sınırları ihlali: Yok</p>
+              <p>Temiz-kirli yön: Uygun</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">Kapı Erişimi ve Hareket</h3>
+            <div className="text-sm text-gray-700 space-y-2">
+              <p>Son 60 dk kapı açılma sayısı: 12</p>
+              <p>Limit: ≤ 20/saat</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">El Hijyeni ve Temas Süreleri</h3>
+            <div className="text-sm text-gray-700 space-y-2">
+              <p>Anlık uyum: %92</p>
+              <p>Ortalama temas süresi: 3.2 dk</p>
+            </div>
+          </div>
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-gray-900">Çevresel Parametreler</h3>

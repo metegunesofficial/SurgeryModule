@@ -167,6 +167,18 @@ export default function AtillaDentalDashboard() {
                   </div>
                 </div>
               </div>
+
+              {/* Compliance Snapshot (SKS/JCI) */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">Uyumluluk Özeti</h3>
+                <ul className="text-sm text-gray-700 space-y-2 list-disc pl-5">
+                  <li>Hasta Güvenliği Hedefleri</li>
+                  <li>Sterilizasyon Kalite Göstergeleri</li>
+                  <li>Olay Bildirimleri</li>
+                  <li>Dokümantasyon ve Denetim</li>
+                  <li>Eğitim Uyumu</li>
+                </ul>
+              </div>
             </div>
 
             {/* Right Column */}

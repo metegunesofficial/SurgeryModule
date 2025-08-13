@@ -197,12 +197,12 @@ function SterilizasyonPage() {
                   <div className="p-3 rounded border border-gray-200">
                     <div className="text-gray-500">Biolojik Göstergeler</div>
                     <div className="mt-1 font-medium text-gray-900">%100 geçiş</div>
-                    <div className="text-xs text-gray-500">AAMI ST79 referansı</div>
+                    <div className="text-xs text-gray-500">STandart referansı</div>
                   </div>
                   <div className="p-3 rounded border border-gray-200">
                     <div className="text-gray-500">Kimyasal Göstergeler</div>
                     <div className="mt-1 font-medium text-gray-900">Tip 5/6 tamam</div>
-                    <div className="text-xs text-gray-500">ISO 11140-1 referansı</div>
+                    <div className="text-xs text-gray-500">Uluslararası referans</div>
                   </div>
                   <div className="p-3 rounded border border-gray-200">
                     <div className="text-gray-500">Döngü Başarı Oranı</div>
@@ -210,6 +210,17 @@ function SterilizasyonPage() {
                     <div className="text-xs text-gray-500">Son 30 gün</div>
                   </div>
                 </div>
+              </div>
+
+              {/* SKS/JCI References */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">SKS ve JCI Referansları</h3>
+                <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
+                  <li>AAMI ST79 - Buharlı sterilizasyon ve steril işlem</li>
+                  <li>ISO 11140-1 - Kimyasal göstergeler</li>
+                  <li>SKS Enfeksiyonların Önlenmesi ve Kontrolü standartları</li>
+                  <li>JCI IPC (Infection Prevention and Control) gereksinimleri</li>
+                </ul>
               </div>
             </div>
 
