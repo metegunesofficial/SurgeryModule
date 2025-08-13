@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useSurgeryPlanningStore } from '@/stores/surgeryPlanning';
 
 /**
  * Hooks for the Surgery (Ameliyat) module.
@@ -160,6 +161,16 @@ export function useUpcomingSurgeries() {
   });
 }
 
+export function useConflictSummary() {
+  const checkConflicts = useSurgeryPlanningStore((s) => s.checkConflicts);
+  return useQuery({
+    queryKey: ['surgery', 'conflicts'],
+    queryFn: async () => checkConflicts(),
+    initialData: { count: 0, details: [] },
+    staleTime: Infinity,
+  });
+}
+
 export default function useSurgeryModule() {
   return {
     useTodayProgram,
@@ -168,6 +179,7 @@ export default function useSurgeryModule() {
     useResourceUtilization,
     useWeeklySchedule,
     useUpcomingSurgeries,
+    useConflictSummary,
   };
 }
 

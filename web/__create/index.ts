@@ -2,7 +2,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import nodeConsole from 'node:console';
 import Credentials from '@auth/core/providers/credentials';
 import { authHandler, initAuthConfig } from '@hono/auth-js';
-import { Pool, neonConfig } from '@neondatabase/serverless';
+import { neonConfig } from '@neondatabase/serverless';
 import { hash, verify } from 'argon2';
 import { Hono } from 'hono';
 import { contextStorage } from 'hono/context-storage';
@@ -16,6 +16,9 @@ import NeonAdapter from './adapter';
 import { getHTMLForErrorPage } from './get-html-for-error-page';
 import { isAuthAction } from './is-auth-action';
 import { API_BASENAME, api } from './route-builder';
+import { securityHeaders, createRateLimiter } from '../src/lib/security';
+import { getEnv } from '../src/lib/env';
+import { getPoolClient } from '../src/lib/db';
 neonConfig.webSocketConstructor = ws;
 
 const als = new AsyncLocalStorage<{ requestId: string }>();
@@ -33,14 +36,14 @@ for (const method of ['log', 'info', 'warn', 'error', 'debug'] as const) {
   };
 }
 
-// Create the Neon adapter lazily only when a connection string is present.
+// Defer env validation to runtime request handling to avoid build-time failures
+
+// Create the DB adapter lazily only when a connection string is present.
 // This prevents crashes in local/dev environments where DATABASE_URL is not set.
 let adapter: ReturnType<typeof NeonAdapter> | null = null;
 if (process.env.DATABASE_URL && process.env.DATABASE_URL.trim().length > 0) {
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-  });
-  adapter = NeonAdapter(pool);
+  const client = getPoolClient();
+  adapter = NeonAdapter(client);
 }
 
 const app = new Hono();
@@ -53,6 +56,11 @@ app.use('*', (c, next) => {
 });
 
 app.use(contextStorage());
+
+// Security middlewares
+app.use('*', securityHeaders());
+// Modest rate limiting for API routes
+app.use('/api/*', createRateLimiter());
 
 app.onError((err, c) => {
   if (c.req.method !== 'GET') {
@@ -88,8 +96,8 @@ if (process.env.AUTH_SECRET && adapter) {
         signOut: '/account/logout',
       },
       // Avoid importing '@auth/core' root export which can break Vite resolution in some envs
-      // Dev-only: explicitly skip CSRF checks to match previous behavior
-      skipCSRFCheck: true,
+      // Dev-only: explicitly skip CSRF checks; enable in production
+      skipCSRFCheck: process.env.NODE_ENV !== 'production',
       session: {
         strategy: 'jwt',
       },

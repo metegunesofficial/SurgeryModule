@@ -1,7 +1,37 @@
 import { CheckCircle, XCircle, Clock, QrCode, Pause, RotateCcw, Timer, Search, Zap, Thermometer, Play, Package } from "lucide-react";
-import { memo } from "react";
+import { memo, useMemo, useState } from "react";
+import { generateMockDataMatrix } from "@/lib/sterilization/label";
+import { useSterilizationStore } from "@/stores/sterilization";
 
 function SterilizasyonPage() {
+  const addWash = useSterilizationStore((s) => s.addWash);
+  const setIndicator = useSterilizationStore((s) => s.setIndicator);
+  const canReleaseKit = useSterilizationStore((s) => s.canReleaseKit);
+  const initiateRecall = useSterilizationStore((s) => s.initiateRecall);
+  const recallsCount = useSterilizationStore((s) => s.recalls.length);
+  const cycles = useSterilizationStore((s) => s.cycles);
+  const indicators = useSterilizationStore((s) => s.indicators);
+  const [kitId, setKitId] = useState("");
+  const [lot, setLot] = useState("");
+  const [ciResult, setCiResult] = useState("pass");
+  const [recallReason, setRecallReason] = useState("");
+  const [recallScope, setRecallScope] = useState("");
+
+  const reporting = useMemo(() => {
+    const total = cycles.length;
+    const passCount = cycles.filter(c => c.result === 'pass').length;
+    const biKnown = cycles.filter(c => c.BI_result && c.BI_result !== 'na');
+    const biPass = biKnown.filter(c => c.BI_result === 'pass');
+    const ciKnown = indicators.filter(i => i.ci_result === 'pass' || i.ci_result === 'fail');
+    const ciPass = ciKnown.filter(i => i.ci_result === 'pass');
+    const pct = (n, d) => d ? Math.round((n / d) * 1000) / 10 : 0;
+    return {
+      total,
+      passPct: pct(passCount, total),
+      biPassPct: pct(biPass.length, biKnown.length),
+      ciPassPct: pct(ciPass.length, ciKnown.length),
+    };
+  }, [cycles, indicators]);
   return (
     <main aria-labelledby="page-title">
       <h1 id="page-title" className="sr-only">Sterilizasyon Döngü Yönetimi</h1>
@@ -25,9 +55,9 @@ function SterilizasyonPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-12 gap-6">
+          <div className="grid grid-cols-12 gap-6 lg:grid-cols-12 md:grid-cols-12 sm:grid-cols-1">
             {/* Left Column */}
-            <div className="col-span-4 space-y-6">
+            <div className="col-span-12 lg:col-span-4 space-y-6">
               {/* Active Cycles */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">Aktif Döngüler</h3>
@@ -186,7 +216,32 @@ function SterilizasyonPage() {
                   <div className="p-3 rounded border border-gray-200">
                     QR &gt; Yükleme &gt; Döngü &gt; Boşaltma &gt; Depolama &gt; Kullanım &gt; Dezenfeksiyon
                   </div>
-                  <button className="w-full h-9 px-3 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50">Zinciri görüntüle</button>
+                  <div className="flex gap-2">
+                    <input
+                      value={kitId}
+                      onChange={(e) => setKitId(e.target.value)}
+                      placeholder="Kit ID"
+                      className="flex-1 border border-gray-300 rounded-md px-2 py-1"
+                      aria-label="Kit ID"
+                    />
+                    <input
+                      value={lot}
+                      onChange={(e) => setLot(e.target.value)}
+                      placeholder="Lot"
+                      className="w-32 border border-gray-300 rounded-md px-2 py-1"
+                      aria-label="Lot"
+                    />
+                    <button
+                      className="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                      onClick={() => {
+                        if (!kitId) return;
+                        const code = generateMockDataMatrix(kitId, lot || undefined);
+                        window.alert(`Mock DataMatrix: ${code}`);
+                      }}
+                    >
+                      Etiket Oluştur
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -194,20 +249,20 @@ function SterilizasyonPage() {
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">Kalite Güvence Metrikleri</h3>
                 <div className="grid grid-cols-3 gap-3 text-sm">
-                  <div className="p-3 rounded border border-gray-200">
+                  <div className="p-3 rounded border border-gray-200" role="status" aria-live="polite">
                     <div className="text-gray-500">Biolojik Göstergeler</div>
-                    <div className="mt-1 font-medium text-gray-900">%100 geçiş</div>
-                    <div className="text-xs text-gray-500">STandart referansı</div>
+                    <div className="mt-1 font-medium text-gray-900">%{reporting.biPassPct} geçiş</div>
+                    <div className="text-xs text-gray-500">Ölçülen döngüler</div>
                   </div>
-                  <div className="p-3 rounded border border-gray-200">
+                  <div className="p-3 rounded border border-gray-200" role="status" aria-live="polite">
                     <div className="text-gray-500">Kimyasal Göstergeler</div>
-                    <div className="mt-1 font-medium text-gray-900">Tip 5/6 tamam</div>
-                    <div className="text-xs text-gray-500">Uluslararası referans</div>
+                    <div className="mt-1 font-medium text-gray-900">%{reporting.ciPassPct} geçiş</div>
+                    <div className="text-xs text-gray-500">Kayıtlı setler</div>
                   </div>
-                  <div className="p-3 rounded border border-gray-200">
+                  <div className="p-3 rounded border border-gray-200" role="status" aria-live="polite">
                     <div className="text-gray-500">Döngü Başarı Oranı</div>
-                    <div className="mt-1 font-medium text-gray-900">%99.6</div>
-                    <div className="text-xs text-gray-500">Son 30 gün</div>
+                    <div className="mt-1 font-medium text-gray-900">%{reporting.passPct}</div>
+                    <div className="text-xs text-gray-500">Toplam: {reporting.total}</div>
                   </div>
                 </div>
               </div>
@@ -222,10 +277,45 @@ function SterilizasyonPage() {
                   <li>JCI IPC (Infection Prevention and Control) gereksinimleri</li>
                 </ul>
               </div>
+
+              {/* Indicator and Release Check */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">İndikatör (CI) ve Serbest Bırakma</h3>
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <input
+                    value={kitId}
+                    onChange={(e)=>setKitId(e.target.value)}
+                    placeholder="Kit ID"
+                    aria-label="İndikatör için Kit ID"
+                    className="border border-gray-300 rounded-md px-2 py-1"
+                  />
+                  <select
+                    value={ciResult}
+                    onChange={(e)=>setCiResult(e.target.value)}
+                    aria-label="Kimyasal Gösterge Sonucu"
+                    className="border border-gray-300 rounded-md px-2 py-1"
+                  >
+                    <option value="pass">Geçti</option>
+                    <option value="fail">Kaldı</option>
+                  </select>
+                  <button
+                    className="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                    onClick={()=>{
+                      if (!kitId) return;
+                      setIndicator(kitId, { ci_result: ciResult });
+                    }}
+                  >Kaydet</button>
+                </div>
+                <div className="mt-3 text-xs text-gray-700" role="status" aria-live="polite">
+                  {kitId ? (
+                    canReleaseKit(kitId) ? 'Serbest bırakılabilir' : 'Serbest bırakma engellendi (BI/CI)'
+                  ) : 'Kit ID giriniz'}
+                </div>
+              </div>
             </div>
 
             {/* Right Column */}
-            <div className="col-span-8 space-y-6">
+            <div className="col-span-12 lg:col-span-8 space-y-6">
               {/* Sterilization Process Overview */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-6">
@@ -409,6 +499,21 @@ function SterilizasyonPage() {
                         className="pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
+                    <button
+                      className="px-3 py-2 text-sm text-blue-700 border border-blue-200 rounded-md hover:bg-blue-50"
+                      onClick={() => {
+                        addWash({
+                          wash_id: crypto.randomUUID(),
+                          program_code: 'P1',
+                          temp_C: 60,
+                          detergent_lot: 'D-001',
+                          operator_id: crypto.randomUUID(),
+                          result: 'pass',
+                        });
+                      }}
+                    >
+                      Yıkama Kaydı Ekle
+                    </button>
                   </div>
                 </div>
 
@@ -469,6 +574,45 @@ function SterilizasyonPage() {
                       </tr>
                     </tbody>
                   </table>
+                </div>
+              </div>
+
+              {/* Recall Management */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900">Recall Yönetimi</h2>
+                  <span className="text-sm text-gray-600">Aktif: {recallsCount}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <input
+                    placeholder="Neden"
+                    value={recallReason}
+                    onChange={(e)=>setRecallReason(e.target.value)}
+                    aria-label="Recall nedeni"
+                    className="border border-gray-300 rounded-md px-2 py-1"
+                  />
+                  <input
+                    placeholder="Kapsam (kit_id virgülle)"
+                    value={recallScope}
+                    onChange={(e)=>setRecallScope(e.target.value)}
+                    aria-label="Recall kapsamı"
+                    className="border border-gray-300 rounded-md px-2 py-1"
+                  />
+                  <button
+                    className="px-3 py-1 text-sm text-red-700 border border-red-300 rounded-md hover:bg-red-50"
+                    onClick={()=>{
+                      if (!recallReason) return;
+                      initiateRecall({
+                        recall_id: crypto.randomUUID(),
+                        reason: recallReason,
+                        scope: recallScope.split(/\s*,\s*/).filter(Boolean),
+                        initiated_by: crypto.randomUUID(),
+                        initiated_at: new Date().toISOString(),
+                      });
+                      setRecallReason("");
+                      setRecallScope("");
+                    }}
+                  >Recall Başlat</button>
                 </div>
               </div>
             </div>

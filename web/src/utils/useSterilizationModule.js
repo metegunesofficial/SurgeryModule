@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useSterilizationStore } from '@/stores/sterilization';
 
 /**
  * Hooks for the Sterilization module.
@@ -118,6 +119,16 @@ export function useRecentCycles() {
   });
 }
 
+export function useKitStatuses() {
+  const kits = useSterilizationStore((s) => s.kits);
+  return useQuery({
+    queryKey: ['sterilization', 'kits', kits.length],
+    queryFn: async () => kits,
+    initialData: kits,
+    staleTime: Infinity,
+  });
+}
+
 export default function useSterilizationModule() {
   return {
     useActiveCycles,
@@ -127,6 +138,7 @@ export default function useSterilizationModule() {
     useTraceabilityInfo,
     useQualityAssuranceMetrics,
     useRecentCycles,
+    useKitStatuses,
   };
 }
 

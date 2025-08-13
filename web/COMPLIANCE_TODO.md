@@ -3,7 +3,7 @@
 - Build scriptleri: `build` ve `start` komutları eklenecek
 - SSR build: `__create/route-builder.ts` dosyasında prod’da dosya sistemi taramasını kaldır
 - Prerender: gerçek rotaları tek tek listele (wildcard kullanma)
-- Env değişkenleri: `DATABASE_URL`, `AUTH_SECRET`, `AUTH_URL`, `CORS_ORIGINS`, `NEXT_PUBLIC_*`
+- Env değişkenleri: `DATABASE_URL`, `AUTH_SECRET`, `AUTH_URL`, `CORS_ORIGINS`, `NEXT_PUBLIC_*` (örnek için `.env.example` eklendi)
 - Sağlık kontrolleri ve base URL: `NEXT_PUBLIC_CREATE_BASE_URL` prod’da set edilmeli (gerekirse kaldır)
 - Testler: tüm vitest testleri yeşil
 - Tip kontrol: strict TS noEmit yeşil
@@ -52,6 +52,13 @@ Bu dosya, mevcut uygulamadaki tüm sayfaların SKS (Sağlıkta Kalite Standartla
 
  Testler:
  - [x] `src/app/sterilizasyon/__tests__/compliance.extended.test.tsx`
+
+### 4.1) PRD Uyum Görünümü (`src/app/uyum/page.jsx`)
+  - [x] JSON PRD içeriğini dinamik okuyan Uyum sayfası (modül/alt modül/özellik/ekipman ve tüm gereksinim kategorileri + standartlar)
+  - [x] Özet kartları ve toplamlar için test-id’ler eklendi
+
+  Testler:
+  - [x] `src/app/uyum/__tests__/page.test.tsx`
 
 ### 5) Personel (`src/app/personel/page.jsx`)
  - [x] Bölüm: Eğitim Uygunluğu (tamamlanma oranı, gerekli eğitimler)

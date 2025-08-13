@@ -16,6 +16,16 @@ import { restartEnvFileChange } from './plugins/restartEnvFileChange';
 export default defineConfig({
   // Keep them available via import.meta.env.NEXT_PUBLIC_*
   envPrefix: 'NEXT_PUBLIC_',
+  ssr: {
+    external: [
+      'pg',
+      'pg-native',
+      'pg-protocol',
+      'pg-connection-string',
+      'bufferutil',
+      'utf-8-validate',
+    ],
+  },
   optimizeDeps: {
     // Explicitly include fast-glob, since it gets dynamically imported and we
     // don't want that to cause a re-bundle.
@@ -30,7 +40,6 @@ export default defineConfig({
     exclude: [
       '@auth/create/react',
       '@auth/create',
-      '@auth/core',
       'hono/context-storage',
       'fsevents',
       'lightningcss',
@@ -43,6 +52,7 @@ export default defineConfig({
     reactRouterHonoServer({
       serverEntryPoint: './__create/index.ts',
       runtime: 'node',
+      env: { PRERENDER: 'true' },
     }),
     babel({
       include: ['src/**/*.{js,jsx,ts,tsx}'], // or RegExp: /src\/.*\.[tj]sx?$/
@@ -86,6 +96,18 @@ export default defineConfig({
     dedupe: ['react', 'react-dom'],
   },
   clearScreen: false,
+  build: {
+    rollupOptions: {
+      external: [
+        'pg',
+        'pg-native',
+        'pg-protocol',
+        'pg-connection-string',
+        'bufferutil',
+        'utf-8-validate',
+      ],
+    },
+  },
   server: {
     allowedHosts: true,
     host: '0.0.0.0',

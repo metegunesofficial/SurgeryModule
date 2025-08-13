@@ -1,7 +1,24 @@
 import { CheckCircle, Clock, XCircle, Plus, Search, Filter, MoreHorizontal, Edit } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useSurgeryPlanningStore } from "@/stores/surgeryPlanning";
+import { MockNotificationProvider } from "@/lib/providers/notifications/mock";
 import { memo } from "react";
 
 function AmeliyatPlanlamaPage() {
+  const addBlock = useSurgeryPlanningStore((s) => s.addBlock);
+  const verifyKits = useSurgeryPlanningStore((s) => s.verifyKits);
+  const setResponsibility = useSurgeryPlanningStore((s) => s.setResponsibility);
+  const [kitInput, setKitInput] = useState("");
+  const kits = useMemo(() => kitInput.split(/\s*,\s*/).filter(Boolean), [kitInput]);
+  const kitValidation = useMemo(() => verifyKits({ scanned_kit_ids: kits }), [kits, verifyKits]);
+
+  // Block planning form
+  const [blockForm, setBlockForm] = useState({ room_id: "Room-1", surgeon_id: "", day_of_week: "Mon", start_hour: 9, end_hour: 12 });
+
+  // Responsibility matrix quick assign
+  const [leadSurgeon, setLeadSurgeon] = useState("");
+  const [anesthetist, setAnesthetist] = useState("");
+
   return (
     <main aria-labelledby="page-title">
           <h1 id="page-title" className="sr-only">Ameliyat Planlama</h1>
@@ -19,8 +36,9 @@ function AmeliyatPlanlamaPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-12 gap-6">
-            <div className="col-span-4 space-y-6">
+          <div className="grid grid-cols-12 gap-6 lg:grid-cols-12 md:grid-cols-12 sm:grid-cols-1">
+            <div className="col-span-12 lg:col-span-4 space-y-6">
+            
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-semibold text-gray-900">Bugünün Programı</h3>
@@ -174,7 +192,22 @@ function AmeliyatPlanlamaPage() {
                     <span>Bugün çakışma bulunamadı</span>
                     <span className="text-xs text-blue-700">0 çakışma</span>
                   </div>
-                  <button data-rbac-action="run:conflict-check" className="w-full h-9 px-3 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50">Detaylı kontrol çalıştır</button>
+                  <button
+                    data-rbac-action="run:conflict-check"
+                    className="w-full h-9 px-3 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50"
+                    onClick={() => {
+                      addBlock({
+                        plan_id: crypto.randomUUID(),
+                        room_id: "Room-1",
+                        surgeon_id: crypto.randomUUID(),
+                        day_of_week: "Mon",
+                        start_hour: 9,
+                        end_hour: 12,
+                      });
+                    }}
+                  >
+                    Detaylı kontrol çalıştır
+                  </button>
                 </div>
               </div>
 
@@ -196,9 +229,100 @@ function AmeliyatPlanlamaPage() {
                   </div>
                 </div>
               </div>
+
+              {/* PRD: Blok planlama UI iskeleti */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Blok Planlama</h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <label className="block text-gray-600 mb-1">Oda</label>
+                    <input value={blockForm.room_id} onChange={(e)=>setBlockForm(f=>({...f, room_id: e.target.value}))} className="w-full border border-gray-300 rounded-md px-2 py-1" />
+                  </div>
+                  <div>
+                    <label className="block text-gray-600 mb-1">Cerrah ID</label>
+                    <input value={blockForm.surgeon_id} onChange={(e)=>setBlockForm(f=>({...f, surgeon_id: e.target.value}))} className="w-full border border-gray-300 rounded-md px-2 py-1" />
+                  </div>
+                  <div>
+                    <label className="block text-gray-600 mb-1">Gün</label>
+                    <select value={blockForm.day_of_week} onChange={(e)=>setBlockForm(f=>({...f, day_of_week: e.target.value}))} className="w-full border border-gray-300 rounded-md px-2 py-1">
+                      {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((d)=> <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <label className="block text-gray-600 mb-1">Başlangıç</label>
+                      <input type="number" min={0} max={23} value={blockForm.start_hour} onChange={(e)=>setBlockForm(f=>({...f, start_hour: Number(e.target.value)}))} className="w-full border border-gray-300 rounded-md px-2 py-1" />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-gray-600 mb-1">Bitiş</label>
+                      <input type="number" min={1} max={24} value={blockForm.end_hour} onChange={(e)=>setBlockForm(f=>({...f, end_hour: Number(e.target.value)}))} className="w-full border border-gray-300 rounded-md px-2 py-1" />
+                    </div>
+                  </div>
+                </div>
+                <button
+                  className="mt-3 px-3 py-1 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                  onClick={()=>{
+                    addBlock({
+                      plan_id: crypto.randomUUID(),
+                      room_id: blockForm.room_id,
+                      surgeon_id: blockForm.surgeon_id || crypto.randomUUID(),
+                      day_of_week: blockForm.day_of_week,
+                      start_hour: blockForm.start_hour,
+                      end_hour: blockForm.end_hour,
+                    });
+                  }}
+                >Kaydet</button>
+              </div>
+
+              {/* PRD: Kit doğrulama skeleton */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">Kit Doğrulama</h3>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    value={kitInput}
+                    onChange={(e) => setKitInput(e.target.value)}
+                    placeholder="Kit ID'leri virgülle girin"
+                    className="flex-1 border border-gray-300 rounded-md px-2 py-1 text-sm"
+                    aria-label="Kit ID'leri"
+                  />
+                </div>
+                <div className="text-xs text-gray-700">
+                  <span className={kitValidation.all_kits_valid ? "text-green-700" : "text-red-700"}>
+                    {kitValidation.all_kits_valid ? "Tümü geçerli" : "Hatalı/tekrarlı ID"}
+                  </span>
+                </div>
+              </div>
+
+              {/* PRD: Ekip ataması sorumluluk matrisi */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">Ekip Ataması</h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <label className="block text-gray-600 mb-1">Lead Surgeon (user_id)</label>
+                    <input value={leadSurgeon} onChange={(e)=>setLeadSurgeon(e.target.value)} className="w-full border border-gray-300 rounded-md px-2 py-1" />
+                  </div>
+                  <div>
+                    <label className="block text-gray-600 mb-1">Anestezist (user_id)</label>
+                    <input value={anesthetist} onChange={(e)=>setAnesthetist(e.target.value)} className="w-full border border-gray-300 rounded-md px-2 py-1" />
+                  </div>
+                </div>
+                <button
+                  className="mt-3 px-3 py-1 text-sm text-blue-700 border border-blue-300 rounded-md hover:bg-blue-50"
+                  onClick={()=>{
+                    setResponsibility({
+                      context: 'case',
+                      case_id: crypto.randomUUID(),
+                      assignments: [
+                        { role: 'lead_surgeon', user_id: leadSurgeon || crypto.randomUUID() },
+                        { role: 'anesthetist', user_id: anesthetist || crypto.randomUUID() },
+                      ],
+                    });
+                  }}
+                >Matrisi Kaydet</button>
+              </div>
             </div>
 
-            <div className="col-span-8 space-y-6">
+            <div className="col-span-12 lg:col-span-8 space-y-6">
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-semibold text-gray-900">Haftalık Planlama</h2>
@@ -370,6 +494,96 @@ function AmeliyatPlanlamaPage() {
                             <Edit className="w-4 h-4" />
                           </button>
                         </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* PRD: Onay ve hatırlatma akışı mock */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900">Onay/Hatırlatma</h2>
+                  <div className="flex gap-2">
+                    <button
+                      className="px-3 py-1 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                      onClick={async () => {
+                        await MockNotificationProvider.sendApproval({
+                          caseId: crypto.randomUUID(),
+                          patientId: crypto.randomUUID(),
+                          scheduledAtIso: new Date().toISOString(),
+                          recipient: "+905551112233",
+                          channel: "sms",
+                        });
+                      }}
+                    >
+                      Onay Gönder (SMS)
+                    </button>
+                    <button
+                      className="px-3 py-1 text-sm text-blue-700 border border-blue-300 rounded-md hover:bg-blue-50"
+                      onClick={async () => {
+                        await MockNotificationProvider.sendReminder({
+                          caseId: crypto.randomUUID(),
+                          recipient: "patient@example.com",
+                          channel: "email",
+                          remindAtIso: new Date(Date.now() + 3600_000).toISOString(),
+                        });
+                      }}
+                    >
+                      Hatırlatma Planla (E-posta)
+                    </button>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600">Bu butonlar mock sağlayıcıyı kullanır, gerçek entegrasyon içermez.</p>
+              </div>
+
+              {/* PRD: Materyal kullanımı kayıt formu */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Materyal Kullanımı</h2>
+                <div className="grid grid-cols-4 gap-2 text-sm">
+                  <input placeholder="Ürün Kodu" className="border border-gray-300 rounded-md px-2 py-1" />
+                  <input placeholder="Lot No" className="border border-gray-300 rounded-md px-2 py-1" />
+                  <input placeholder="Adet" type="number" className="border border-gray-300 rounded-md px-2 py-1" />
+                  <input placeholder="UDI" className="border border-gray-300 rounded-md px-2 py-1" />
+                </div>
+                <button className="mt-3 px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50">Kaydet</button>
+              </div>
+
+              {/* PRD: Olay bildirimi formu */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Olay Bildirimi</h2>
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <input placeholder="Olay Türü" className="border border-gray-300 rounded-md px-2 py-1" />
+                  <select className="border border-gray-300 rounded-md px-2 py-1" aria-label="Şiddet">
+                    <option value="low">Düşük</option>
+                    <option value="med">Orta</option>
+                    <option value="high">Yüksek</option>
+                    <option value="critical">Kritik</option>
+                  </select>
+                  <input placeholder="Açıklama" className="border border-gray-300 rounded-md px-2 py-1" />
+                </div>
+                <button className="mt-3 px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50">Gönder</button>
+              </div>
+
+              {/* PRD: Audit log arayüzü */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Audit Log</h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-2 px-2">Zaman</th>
+                        <th className="text-left py-2 px-2">Aktör</th>
+                        <th className="text-left py-2 px-2">Aksiyon</th>
+                        <th className="text-left py-2 px-2">Varlık</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-gray-100">
+                        <td className="py-2 px-2">{new Date().toLocaleString()}</td>
+                        <td className="py-2 px-2">user-123</td>
+                        <td className="py-2 px-2">create:surgery-schedule</td>
+                        <td className="py-2 px-2">case: CASE-1</td>
                       </tr>
                     </tbody>
                   </table>

@@ -1,3 +1,18 @@
+Backend/DB/Security setup
+
+- Add `.env.example` to document required env (DATABASE_URL, AUTH_SECRET, etc.)
+- Security headers + lightweight rate limiter middleware
+- DB client abstraction compatible with Neon/Supabase (HTTP + Pool)
+- Auth adapter based on Postgres tables and Credentials provider
+- SQL migration runner under `scripts/migrate.mjs` and initial migration in `db/migrations`
+- Health route at `/api/health`
+
+Deploy notes
+
+- Set env on Vercel: DATABASE_URL, AUTH_SECRET, AUTH_URL, CORS_ORIGINS
+- Attach Vercel Postgres/Neon or Supabase (copy connection string)
+- Run `npm run db:apply-auth` and `npm run db:migrate` once
+
 ## Amaç
 
 Mevcut menü başlıklarının altındaki içerikleri, dünya standartlarında Cerrahi (Ameliyat) ve Sterilizasyon modülleri haline getirmek.

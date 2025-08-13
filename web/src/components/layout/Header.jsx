@@ -27,7 +27,7 @@ export function Header() {
   }, []);
 
   return (
-    <header className="bg-white border-b border-gray-200 h-16 px-6 relative">
+    <header className="bg-white border-b border-gray-200 h-16 px-6 sticky top-0 z-40">
       <div className="h-full flex items-center justify-between">
         <div className="h-10 flex items-center">
           {/* Mobile hamburger */}

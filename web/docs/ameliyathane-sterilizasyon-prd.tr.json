@@ -1,0 +1,256 @@
+{
+  "product_name": "Diş Sağlığı Merkezleri için Ameliyathane ve Sterilizasyon Modülleri",
+  "modules": [
+    {
+      "module_name": "Ameliyathane Yönetimi",
+      "description": "Diş cerrahisi ve sedasyon/ameliyathane odalarında planlama, kaynak yönetimi, ameliyat kayıtları, enstrüman/kit izlenebilirliği ve klinik entegrasyonları kapsar.",
+      "submodules": [
+        {
+          "submodule_name": "Planlama ve Randevu",
+          "features": [
+            "Vaka planlama: çoklu klinik/oda/ekip eşleştirme",
+            "Çakışma kontrolü ve bekleme listesi",
+            "Blok planlama (cerrah/oda bazlı)",
+            "Onay ve hatırlatma akışları (SMS/e-posta, opsiyonel)"
+          ],
+          "equipment": [
+            "Masaüstü istasyon",
+            "Tablet (opsiyonel)",
+            "Ağ yazıcı"
+          ]
+        },
+        {
+          "submodule_name": "Oda ve Kaynak Yönetimi",
+          "features": [
+            "Oda durumu (boş/temizlikte/hazır)",
+            "Kaynak tahsisi (sedasyon cihazı, diş ünitleri, RTLS etiketleri)",
+            "Stok/kit uygunluk kontrolü",
+            "Anlık kapasite görünümü"
+          ],
+          "equipment": [
+            "Barkod/RFID okuyucu",
+            "RTLS etiketleri (opsiyonel)",
+            "UPS destekli istasyon"
+          ]
+        },
+        {
+          "submodule_name": "Ameliyat Kaydı ve Kontrol Listeleri",
+          "features": [
+            "WHO Safe Surgery Checklist (pre-op, time-out, post-op)",
+            "Operasyon notu ve kullanılan materyaller",
+            "Steril kit doğrulama (barkod/RFID)",
+            "Komplikasyon ve olay bildirimi"
+          ],
+          "equipment": [
+            "Barkod/RFID okuyucu",
+            "Etiket yazıcı (sterilizasyon dayanımlı etiketler için)"
+          ]
+        },
+        {
+          "submodule_name": "Entegrasyonlar",
+          "features": [
+            "Hasta/Kimlik: HL7 v2 ADT, FHIR Patient",
+            "Randevu/İşlem: HL7 SIU/ORM, FHIR Appointment/Procedure",
+            "e‑Nabız bildirimleri (uygunsa)",
+            "Cihaz arayüzleri (anestezi/vital monitor - opsiyonel)"
+          ],
+          "equipment": [
+            "Ağ geçidi/arayüz sunucusu",
+            "Güvenli ağ segmenti (VLAN)"
+          ]
+        }
+      ],
+      "requirements": {
+        "functional": [
+          "Rol Tabanlı Erişim: role (enum), mandatory — Yetki ayrımı (cerrah, hemşire, teknisyen, yönetici).",
+          "Vaka: case_id (uuid, mandatory), patient_id (uuid, mandatory), scheduled_start (datetime, mandatory), estimated_duration_min (number, mandatory), procedure_code (string, mandatory — SNOMED/ICD-10-PCS uyumu önerilir), room_id (string, mandatory), surgeon_id (uuid, mandatory), anesthesia_required (boolean, optional), ASA_score (number, optional), status (enum['planned','in_progress','completed','cancelled'], mandatory).",
+          "Operasyon Notu: op_note_id (uuid, mandatory), case_id (uuid, mandatory), indications (string, mandatory), findings (string, optional), implants_used (string[], optional), complications (string, optional), sign_off_by (uuid, mandatory), sign_off_time (datetime, mandatory).",
+          "Check-list: ssc_preop_done (boolean, mandatory), ssc_timeout_done (boolean, mandatory), ssc_postop_done (boolean, mandatory), completed_by (uuid, mandatory), timestamps (datetime[], mandatory).",
+          "Ekip Ataması: team (uuid[], mandatory), roles (string[], mandatory) — Sorumluluk matrisi.",
+          "Kit Doğrulama: scanned_kit_ids (string[], mandatory), all_kits_valid (boolean, mandatory) — Steril son kullanma ve ciklus geçerliği kontrolü.",
+          "Materyal Kullanımı: item_code (string, mandatory), lot_no (string, optional), qty (number, mandatory), udi (string, optional).",
+          "Olay Bildirimi: incident_id (uuid, mandatory), type (enum, mandatory), description (string, mandatory), severity (enum['low','med','high','critical'], mandatory), reported_by (uuid, mandatory), attachments (string[], optional).",
+          "Audit Log: action (string, mandatory), actor_id (uuid, mandatory), entity (string, mandatory), entity_id (string, mandatory), ts (datetime, mandatory), delta (json, optional).",
+          "Entegrasyon Haritası: external_ids (object, optional) — e‑Nabız/MEDULA/kurumsal HIS eşleştirmeleri."
+        ],
+        "performance": [
+          "Planlama ekranı ilk boyama < 800 ms; etkileşim gecikmesi P95 < 150 ms.",
+          "Vaka arama/süzme P95 < 300 ms, sonuç sayfası paginasyon destekli.",
+          "Barkod/RFID doğrulama gecikmesi uçtan uca P95 < 300 ms.",
+          "Eşzamanlı kullanıcı (kurum başına): 200 aktif, kayıpsız oturum yönetimi.",
+          "Kritik işlemler için en az 72 saat çevrimdışı kuyruklama ve otomatik yeniden gönderim.",
+          "Kullanılabilirlik: aylık 99.9% (planlı bakım hariç)."
+        ],
+        "user": [
+          "Roller: Cerrah/Diş Hekimi, Ameliyathane Hemşiresi, Anestezi (opsiyonel), Sterilizasyon Teknisyeni, Enfeksiyon Kontrol, Biyomedikal, Yönetici, Denetçi.",
+          "Kullanıcı arayüzü: TR/EN dil desteği (i18n), klavye-kısayolları, yüksek kontrast.",
+          "Mobil/tablet uyumlu formlar; büyük dokunmatik hedefler.",
+          "Anlık uyarılar: check-list eksikleri, steril kit süresi dolmuş, oda hazır değil.",
+          "Eğitim modları ve yerleşik yardım (tooltips, SSS)."
+        ],
+        "physical": [
+          "Oda içi istasyonlar için UPS ve medikal sınıf priz gereksinimi.",
+          "Ağ: ameliyathane VLAN segmentasyonu; kablosuz için WPA2-Enterprise.",
+          "Barkod/RFID okuyucular: IP54+, dezenfektan dayanımı.",
+          "Etiketler: buhar sterilizasyonu dayanımlı, 2D DataMatrix destekli."
+        ],
+        "legal": [
+          "KVKK 6698 uyumu: veri minimizasyonu, aydınlatma metni, açık rıza (gerektiğinde).",
+          "Erişim ve audit loglarının 10 yıl saklanması (kurum politikası/yerel mevzuata göre ayarlanabilir).",
+          "UDI/MDR referanslı implant-malzeme kaydı (varsa).",
+          "e‑Nabız bildirimleri için HL7/FHIR alan eşleştirmeleri ve hata geri bildirimi."
+        ],
+        "error_handling": [
+          "Kit doğrulama başarısız: kullanıcıya kitleştirme detayı ve yeniden tarama akışı; olay kaydı.",
+          "Çift rezervasyon/çakışma: engelle ve alternatif slot öner.",
+          "Ağ kesintisi: yerel kuyruk ve tekrar deneme (exponential backoff, max 24 saat).",
+          "Entegrasyon zaman aşımı: devre kesici, dead-letter kuyruğu ve manuel yeniden gönderim.",
+          "Veri doğrulama: zorunlu alan boş ise kaydetme; alan bazlı hata mesajı.",
+          "Beklenmeyen hata: kullanıcıya referans kodu; Sentry/benzeri ile loglama."
+        ]
+      }
+    },
+    {
+      "module_name": "Sterilizasyon ve Enstrüman İzlenebilirliği",
+      "description": "Kirli alan kabulünden başlayıp yıkama-dezenfeksiyon, paketleme, sterilizasyon, biyolojik/kimyasal indikatör doğrulama, depolama ve dağıtıma kadar uçtan uca izlenebilirlik sağlar.",
+      "submodules": [
+        {
+          "submodule_name": "Kirli Alan Kabul ve Ön İşlem",
+          "features": [
+            "Kirli kit/alet kabul ve sayım",
+            "Ön temizlik/ultrasonik banyo kaydı",
+            "Riskli materyal işaretleme",
+            "İş emri oluşturma"
+          ],
+          "equipment": [
+            "Ultrasonik temizleyici",
+            "Kirli alan el terminali",
+            "Barkod/RFID okuyucu"
+          ]
+        },
+        {
+          "submodule_name": "Yıkama-Dezenfeksiyon",
+          "features": [
+            "ISO 15883 uyumlu cihaz verisi alma (opsiyonel arayüz)",
+            "Program/lot/operatör kaydı",
+            "Sıcaklık/kimyasal konsantrasyon takibi",
+            "Arıza/tekrar yıkama akışı"
+          ],
+          "equipment": [
+            "Yıkama-dezenfektör",
+            "Kimyasal dozajlama sistemi",
+            "Veri kaydedici/sensör"
+          ]
+        },
+        {
+          "submodule_name": "Paketleme ve Etiketleme",
+          "features": [
+            "TS EN 868 uyumlu paketleme kayıtları",
+            "2D DataMatrix etiket basımı (UDI alanlarıyla)",
+            "CI (Class 1-6) kullanım kaydı",
+            "Kasa/tepsi kompozisyon şablonları"
+          ],
+          "equipment": [
+            "Sızdırmazlık cihazı",
+            "Etiket yazıcı",
+            "Barkod/RFID okuyucu"
+          ]
+        },
+        {
+          "submodule_name": "Sterilizasyon (Otoklav/Diğer)",
+          "features": [
+            "EN 13060 Class B/düşük hacim buhar sterilizatör programları",
+            "Siklus veri toplama ve otomatik pass/fail kuralı",
+            "BI/CI sonuç giriş ve bağlama",
+            "Sertifika/rapor üretimi"
+          ],
+          "equipment": [
+            "Otoklav (Class B)",
+            "Biyolojik indikatör inkübatörü/okuyucu",
+            "Sıcaklık/basınç kaydedici"
+          ]
+        },
+        {
+          "submodule_name": "Depolama, Dağıtım ve Kullanım",
+          "features": [
+            "Steril raf ömrü/son kullanma takibi",
+            "Dağıtım ve iade taramaları",
+            "Kullanım sonrası kirli döngüye dönüş",
+            "Geri çağırma (recall) yönetimi"
+          ],
+          "equipment": [
+            "Depo el terminali",
+            "Raf sensörleri (opsiyonel)",
+            "RFID geçit (opsiyonel)"
+          ]
+        }
+      ],
+      "requirements": {
+        "functional": [
+          "Kit/Tepsi: kit_id (uuid, mandatory), name (string, mandatory), composition (string[], optional), udi (string, optional), rfid_tag (string, optional), status (enum['dirty','clean','packed','sterilized','expired','issued','used'], mandatory), location_code (string, mandatory), expiry_date (date, optional), last_cycle_id (uuid, optional).",
+          "Siklus: cycle_id (uuid, mandatory), device_id (string, mandatory), type (enum['steam_B','plasma','other'], mandatory), start_time (datetime, mandatory), end_time (datetime, mandatory), temp_C (number, mandatory), pressure_bar (number, mandatory), exposure_min (number, mandatory), vacuum_passes (number, optional), result (enum['pass','fail'], mandatory), operator_id (uuid, mandatory), BI_result (enum['pass','fail','na'], optional), CI_class (enum['1','2','3','4','5','6'], optional), lot_no (string, optional).",
+          "Yıkama: wash_id (uuid, mandatory), program_code (string, mandatory), temp_C (number, mandatory), detergent_lot (string, optional), operator_id (uuid, mandatory), result (enum['pass','fail'], mandatory).",
+          "Etiket: label_id (uuid, mandatory), datamatrix (string, mandatory), printed_at (datetime, mandatory), printed_by (uuid, mandatory), reprint_of (uuid, optional).",
+          "Tarama Olayı: event_id (uuid, mandatory), kit_id (uuid, mandatory), event_type (enum['received_dirty','washed','packed','sterilized','stored','issued','used','returned','recalled'], mandatory), location (string, mandatory), ts (datetime, mandatory), by_user (uuid, mandatory).",
+          "İndikatör: bi_lot (string, optional), bi_read_time (datetime, optional), ci_class (string, optional), ci_result (enum['pass','fail'], optional).",
+          "Recall: recall_id (uuid, mandatory), reason (string, mandatory), scope (string[], mandatory), initiated_by (uuid, mandatory), initiated_at (datetime, mandatory), closed_at (datetime, optional).",
+          "Raporlama: günlük/haftalık siklus özetleri, başarısızlık oranları, kit devir hızı, BI/CI uyum oranı.",
+          "Entegrasyon: Device (FHIR/CMMS opsiyonel), UDI/EUDAMED alan eşlemesi (opsiyonel)."
+        ],
+        "performance": [
+          "Tarama işlemi uçtan uca P95 < 250 ms.",
+          "Etiket basımı kuyruk süresi P95 < 2 s.",
+          "Siklus verisi alma ve kalıcılık < 3 s (online cihaz arayüzü).",
+          "Günlük 1.000+ tarama ve 200+ siklus için P95 < 500 ms sorgu süreleri.",
+          "Toplu envanter doğrulama (100+ kit) < 60 s."
+        ],
+        "user": [
+          "Sterilizasyon teknisyeni için adım-adım iş akışı (wizard).",
+          "Renk kodlu durumlar: kirli/kuru/paketli/steril/son kullanma.",
+          "Toplu tarama ve toplu işlem (batch) desteği.",
+          "Uyarılar: son kullanma yaklaşan, BI/CI bekleyen, cihaz bakım zamanı."
+        ],
+        "physical": [
+          "Kirli/temiz/steril alan ayrımı; tek yönlü akış.",
+          "Etiket malzemesi: yüksek ısı/nem dayanımı (buhar sterilizasyonu).",
+          "RFID/Barkod okuyucuların eldivenle kullanımına uygun tetik mekanizması.",
+          "Cihaz arayüzü için galvanik izolasyonlu ağ/seri dönüştürücüler."
+        ],
+        "legal": [
+          "ISO 17665 (buhar sterilizasyonu) ve EN 13060 Class B gerekleri doğrultusunda kayıt ve izlenebilirlik.",
+          "ISO 15883 (yıkama-dezenfeksiyon) program ve parametre kayıtları.",
+          "UDI/MDR (2017/745) alanlarının etiket/veri modelinde taşınması (varsa).",
+          "Kayıt saklama: siklus/etiket/olay kayıtları en az 10 yıl.",
+          "KVKK: kit/olay verilerinde kişisel veri minimumda; hasta verisiyle bağ sadece operasyon bağlamında ve erişim kontrollü."
+        ],
+        "error_handling": [
+          "Siklus başarısız: otomatik PASS/FAIL kuralı, zorunlu not ve yeniden işleme akışı.",
+          "Cihaz çevrimdışı: yerel tampon, yeniden bağlanınca toplu gönderim; kullanıcıya durum göstergesi.",
+          "Yanlış kit/yanlış alan taraması: sert engelle ve düzeltme yönlendirmesi.",
+          "Etiket yeniden basım: önceki etiketin iptali ve iz kaydı.",
+          "BI/CI eksik: dağıtım engeli ve sorumluya bildirim.",
+          "Recall başlatma: kapsam arama (lot/cihaz/siklus) ve dağıtım/kliniklerde uyarı."
+        ]
+      }
+    }
+  ],
+  "standards": [
+    "KVKK No. 6698 (Kişisel Verilerin Korunması)",
+    "HL7 v2.x (ADT, ORM, SIU) ve HL7 FHIR R4 (Patient, Appointment, Procedure, Device)",
+    "EU MDR 2017/745 ve UDI",
+    "ISO 13485:2016 (Tıbbi Cihaz Kalite Yönetimi)",
+    "ISO 14971:2019 (Risk Yönetimi)",
+    "ISO 17665-1:2006+A2:2021 (Nemli ısı ile sterilizasyon)",
+    "EN 13060 (Küçük buhar sterilizatörleri, Class B)",
+    "ISO 15883-1/2/5 (Yıkama-dezenfektörler)",
+    "ISO 11138/ISO 11140 (Biyolojik/Kimyasal indikatörler)",
+    "TS EN 868 (Sterilizasyon için paketleme malzemeleri)",
+    "ISO 14644-1 (Temiz odalar – uygulanabilirse)",
+    "IEC 62304 (Sağlık yazılımı yaşam döngüsü)",
+    "ISO/IEC 27001 (Bilgi güvenliği yönetimi)",
+    "IEC 80001-1 (Tıbbi BT ağları risk yönetimi)"
+  ],
+  "notes": "Alan tipleri ve zorunluluk dereceleri kurum politikaları ve yerel mevzuatla doğrulanmalıdır; e‑Nabız/MEDULA entegrasyonu kurumun yetkilerine bağlıdır."
+}
+
+

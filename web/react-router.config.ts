@@ -12,5 +12,6 @@ export default {
         '/canli-izleme',
         '/personel',
         '/sterilizasyon',
+        '/uyum',
     ],
 } satisfies Config;
