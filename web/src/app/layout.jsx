@@ -14,7 +14,9 @@ const queryClient = new QueryClient({
 export default function RootLayout({children}) {
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
+      <div style={{ paddingLeft: 'var(--app-container-padding-x)', paddingRight: 'var(--app-container-padding-x)', paddingTop: 'var(--app-container-padding-y)', paddingBottom: 'var(--app-container-padding-y)', maxWidth: 'var(--app-container-max-width)', marginLeft: 'auto', marginRight: 'auto' }}>
+        {children}
+      </div>
     </QueryClientProvider>
   );
 }

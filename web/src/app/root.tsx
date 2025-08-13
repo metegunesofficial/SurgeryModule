@@ -386,12 +386,12 @@ export function Layout({ children }: { children: ReactNode }) {
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-white focus:border focus:border-blue-500 focus:px-3 focus:py-2 focus:rounded">
           Ana içeriğe atla
         </a>
-        <div className="min-h-screen bg-gray-50 font-sans antialiased md:grid md:grid-cols-[16rem_minmax(0,1fr)]">
+        <div className="min-h-screen bg-gray-50 font-manrope antialiased md:grid md:grid-cols-[16rem_minmax(0,1fr)]">
           <Sidebar />
           <div className="md:col-start-2 flex min-h-screen flex-col">
             <Header />
-            <main id="main-content" className="px-6 py-6">
-              <div className="w-full max-w-7xl mx-auto">
+            <main id="main-content" className="px-3 py-3 md:px-4 md:py-4">
+              <div className="w-full max-w-none">
                 <ClientOnly loader={() => children} />
               </div>
             </main>

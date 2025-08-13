@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { useSurgeryPlanningStore } from "@/stores/surgeryPlanning";
 import { useSterilizationStore } from "@/stores/sterilization";
 
@@ -64,18 +64,26 @@ function DayCalendar({
                       const endMin = Math.min(totalMinutes, minutesSinceMidnight(e.end) - startHour * 60);
                       const top = (startMin / totalMinutes) * 100;
                       const height = Math.max(18, ((endMin - startMin) / totalMinutes) * 100);
-                      const color =
+                      const typeColor = {
+                        'Diş çekimi': 'bg-rose-100 border-rose-200 text-rose-800',
+                        'Kanal tedavisi': 'bg-indigo-100 border-indigo-200 text-indigo-800',
+                        'Dolgu': 'bg-amber-100 border-amber-200 text-amber-800',
+                        'İmplant': 'bg-emerald-100 border-emerald-200 text-emerald-800',
+                        'Kontrol': 'bg-sky-100 border-sky-200 text-sky-800',
+                      }[e.type];
+                      const color = typeColor ?? (
                         e.status === "in_progress"
-                          ? "bg-blue-500/80 border-blue-600"
+                          ? "bg-blue-100 border-blue-200 text-blue-800"
                           : e.status === "completed"
-                          ? "bg-emerald-500/80 border-emerald-600"
+                          ? "bg-emerald-100 border-emerald-200 text-emerald-800"
                           : e.status === "cancelled"
-                          ? "bg-red-500/80 border-red-600"
-                          : "bg-amber-500/80 border-amber-600";
+                          ? "bg-red-100 border-red-200 text-red-800"
+                          : "bg-amber-100 border-amber-200 text-amber-800"
+                      );
                       return (
                         <div
                           key={e.id}
-                          className={`absolute left-2 right-2 rounded-md border text-white shadow-sm ${color}`}
+                          className={`absolute left-2 right-2 rounded-md border shadow-sm ${color}`}
                           style={{ top: `${top}%`, height: `${height}%` }}
                         >
                           <div className="px-2 py-1">
@@ -102,7 +110,7 @@ function DayCalendar({
     return <div>{content}</div>;
   }
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">{content}</div>
+    <div className="bg-white rounded-lg border border-gray-200 p-4">{content}</div>
   );
 }
 
@@ -184,8 +192,12 @@ function AppointmentModal({ open, onClose, onSave, initial, rooms }) {
       room_id: initial.room_id || (rooms?.[0] || ''),
       date: initial.start ? initial.start.toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
       time: initial.start ? initial.start.toTimeString().slice(0, 5) : '09:00',
-      duration: Math.max(30, Math.round(((initial.end - initial.start) / 60000) || 60)),
-      type: initial.type || 'Cerrahi',
+      duration: (() => {
+        const raw = Math.max(15, Math.round((((initial.end - initial.start) / 60000) || 60)));
+        const allowed = [15, 30, 45, 60, 90, 120];
+        return allowed.reduce((prev, curr) => (Math.abs(curr - raw) < Math.abs(prev - raw) ? curr : prev), allowed[0]);
+      })(),
+      type: initial.type || 'Diş çekimi',
       status: initial.status || 'Bekleniyor',
       note: initial.note || '',
       doctor_from: initial.doctor_from || 'Aslı Ataseven',
@@ -193,10 +205,57 @@ function AppointmentModal({ open, onClose, onSave, initial, rooms }) {
       sms: initial.sms ?? true,
     };
   });
+
+  // Opening animation state
+  const [animateIn, setAnimateIn] = useState(false);
+  useEffect(() => {
+    if (open) {
+      const id = requestAnimationFrame(() => setAnimateIn(true));
+      return () => {
+        cancelAnimationFrame(id);
+        setAnimateIn(false);
+      };
+    }
+    setAnimateIn(false);
+  }, [open]);
+
+  // Close on ESC
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose?.();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open, onClose]);
+
+  useEffect(() => {
+    if (open && initial) {
+      setForm({
+        title: initial.label || '',
+        room_id: initial.room_id || (rooms?.[0] || ''),
+        date: initial.start ? initial.start.toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+        time: initial.start ? initial.start.toTimeString().slice(0, 5) : '09:00',
+        duration: (() => {
+          const raw = Math.max(15, Math.round((((initial.end - initial.start) / 60000) || 60)));
+          const allowed = [15, 30, 45, 60, 90, 120];
+          return allowed.reduce((prev, curr) => (Math.abs(curr - raw) < Math.abs(prev - raw) ? curr : prev), allowed[0]);
+        })(),
+        type: initial.type || 'Diş çekimi',
+        status: initial.status || 'Bekleniyor',
+        note: initial.note || '',
+        doctor_from: initial.doctor_from || 'Aslı Ataseven',
+        doctor_to: initial.doctor_to || 'Mehmet Işlek',
+        sms: initial.sms ?? true,
+      });
+    }
+  }, [open, initial, rooms]);
   if (!open || !form) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-[680px] bg-white rounded-lg border border-gray-200 shadow-xl">
+      <div className={`w-[680px] bg-white rounded-lg border border-gray-200 shadow-xl transform transition-[opacity,transform,box-shadow] duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] select-text ${animateIn ? 'opacity-100 scale-100 translate-y-0 shadow-2xl' : 'opacity-0 scale-95 translate-y-2 shadow-md'}`}>
         <div className="px-4 py-3 border-b">
           <h3 className="text-sm font-semibold text-gray-900">Randevu Oluştur / Düzenle</h3>
         </div>
@@ -206,12 +265,28 @@ function AppointmentModal({ open, onClose, onSave, initial, rooms }) {
               onChange={(e) => setForm({ ...form, title: e.target.value })} />
                 </div>
           <div className="col-span-12">
-            <label className="text-[11px] text-gray-500">Doktor</label>
+            <label className="text-[11px] text-gray-500">Doktor / Asistan</label>
             <div className="grid grid-cols-2 gap-2">
-              <input className="border rounded px-2 py-1 text-sm" value={form.doctor_from} onChange={(e) => setForm({ ...form, doctor_from: e.target.value })} />
-              <input className="border rounded px-2 py-1 text-sm" value={form.doctor_to} onChange={(e) => setForm({ ...form, doctor_to: e.target.value })} />
-                      </div>
-                    </div>
+              <div>
+                <label className="block text-[11px] text-gray-500 mb-1">Doktor</label>
+                <select className="w-full border rounded px-2 py-1 text-sm" value={form.doctor_from}
+                  onChange={(e) => setForm({ ...form, doctor_from: e.target.value })}>
+                  {mockUsers.map((u) => (
+                    <option key={u.id} value={u.name}>{u.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[11px] text-gray-500 mb-1">Asistan</label>
+                <select className="w-full border rounded px-2 py-1 text-sm" value={form.doctor_to}
+                  onChange={(e) => setForm({ ...form, doctor_to: e.target.value })}>
+                  {mockUsers.map((u) => (
+                    <option key={u.id} value={u.name}>{u.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
           <div className="col-span-6">
             <label className="block text-[11px] text-gray-500 mb-1">Oda/Ünite</label>
             <select className="w-full border rounded px-2 py-1 text-sm" value={form.room_id}
@@ -221,10 +296,23 @@ function AppointmentModal({ open, onClose, onSave, initial, rooms }) {
               ))}
             </select>
           </div>
+          <div className="col-span-6">
+            <label className="block text-[11px] text-gray-500 mb-1">Tür</label>
+            <select className="w-full border rounded px-2 py-1 text-sm" value={form.type}
+              onChange={(e) => setForm({ ...form, type: e.target.value })}>
+              {['Diş çekimi','Kanal tedavisi','Dolgu','İmplant','Kontrol'].map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
           <div className="col-span-3">
             <label className="block text-[11px] text-gray-500 mb-1">Süre (dk)</label>
-            <input type="number" className="w-full border rounded px-2 py-1 text-sm" value={form.duration}
-              onChange={(e) => setForm({ ...form, duration: Number(e.target.value || 0) })} />
+            <select className="w-full border rounded px-2 py-1 text-sm" value={form.duration}
+              onChange={(e) => setForm({ ...form, duration: Number(e.target.value) })}>
+              {[15,30,45,60,90,120].map((m)=> (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
           </div>
           <div className="col-span-3">
             <label className="block text-[11px] text-gray-500 mb-1">Tarih</label>
@@ -271,6 +359,7 @@ function AppointmentModal({ open, onClose, onSave, initial, rooms }) {
               end,
               status: form.status,
               note: form.note,
+              type: form.type,
               doctor_from: form.doctor_from,
               doctor_to: form.doctor_to,
               sms: form.sms,
@@ -351,11 +440,18 @@ function InteractiveSchedule({ rooms, events, onChange, startHour = 8, endHour =
                   const labelCls = scale < 0.9 ? 'text-[10px]' : 'text-[11px]';
                   const timeCls = scale < 0.9 ? 'text-[9px]' : 'text-[10px]';
                   const padCls = scale < 0.9 ? 'px-1 py-0.5' : 'px-2 py-1';
-                  const color = e.status === 'in_progress' ? 'bg-blue-500/80 border-blue-600' : e.status === 'completed' ? 'bg-emerald-500/80 border-emerald-600' : e.status === 'cancelled' ? 'bg-red-500/80 border-red-600' : 'bg-amber-500/80 border-amber-600';
+                  const typeColor = {
+                    'Diş çekimi': 'bg-rose-100 border-rose-200 text-rose-800',
+                    'Kanal tedavisi': 'bg-indigo-100 border-indigo-200 text-indigo-800',
+                    'Dolgu': 'bg-amber-100 border-amber-200 text-amber-800',
+                    'İmplant': 'bg-emerald-100 border-emerald-200 text-emerald-800',
+                    'Kontrol': 'bg-sky-100 border-sky-200 text-sky-800',
+                  }[e.type];
+                  const color = typeColor ?? (e.status === 'in_progress' ? 'bg-blue-100 border-blue-200 text-blue-800' : e.status === 'completed' ? 'bg-emerald-100 border-emerald-200 text-emerald-800' : e.status === 'cancelled' ? 'bg-red-100 border-red-200 text-red-800' : 'bg-amber-100 border-amber-200 text-amber-800');
                   return (
-                    <div
+                        <div
                       key={e.id}
-                      className={`absolute left-2 right-2 rounded-md border text-white shadow-sm ${color}`}
+                          className={`absolute left-2 right-2 rounded-md border shadow-sm ${color} cursor-pointer transition duration-150 hover:shadow-md active:scale-95`}
                       style={{ top: `${top}%`, height: `${height}%` }}
                       onClick={(ev) => {
                         ev.stopPropagation();
@@ -403,6 +499,7 @@ function AgendaList({ events, onEvent }) {
 }
 
 function WeekAgenda({ date, events, onDayClick, onEvent }) {
+  // Render a week as a 7-day grid similar to MonthGrid
   const start = startOfWeek(date);
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(start);
@@ -410,32 +507,41 @@ function WeekAgenda({ date, events, onDayClick, onEvent }) {
     return d;
   });
   return (
-    <div className="h-96 overflow-y-auto rounded-md border p-3">
-      {days.map((d) => {
-        const dayEvents = events.filter((e) => isSameDay(e.start, d));
-        return (
-          <div key={d.toISOString()} className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-sm font-semibold text-gray-900">{d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: '2-digit' })}</h4>
-              <button className="text-xs text-blue-600 hover:underline" onClick={() => onDayClick?.(d)}>Günü Aç</button>
-            </div>
-            {dayEvents.length === 0 ? (
-              <div className="text-xs text-gray-500">Kayıt yok</div>
-            ) : (
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {dayEvents.map((e) => (
-                  <li key={e.id} className="border rounded p-2 hover:bg-gray-50 cursor-pointer" onClick={() => onEvent?.(e)}>
-                    <div className="text-sm font-medium text-gray-900 truncate">{e.label}</div>
-                    <div className="text-xs text-gray-600">
-                      {e.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {e.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                  </li>
+    <div className="h-96 overflow-y-auto rounded-md border">
+      <div className="grid grid-cols-7 border-b text-xs text-gray-500">
+        {['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'].map((d) => (
+          <div key={d} className="px-2 py-1 text-center">{d}</div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7">
+        {days.map((d) => {
+          const dayEvents = events.filter((e) => isSameDay(e.start, d));
+          const visible = dayEvents.slice(0, 3);
+          return (
+            <div
+              key={d.toISOString()}
+              className="h-24 border -mt-px -ml-px p-1 bg-white"
+              onClick={() => onDayClick?.(d)}
+            >
+              <div className="text-[11px] text-gray-500 mb-1">{d.getDate()}</div>
+              <div className="space-y-1">
+                {visible.map((e) => (
+                  <div
+                    key={e.id}
+                    className="text-[10px] px-1 py-0.5 rounded bg-blue-50 text-blue-700 truncate cursor-pointer"
+                    onClick={(ev) => { ev.stopPropagation(); onEvent?.(e); }}
+                  >
+                    {e.label}
+                  </div>
                 ))}
-                </ul>
-            )}
-          </div>
-        );
-      })}
+                {dayEvents.length > 3 && (
+                  <div className="text-[10px] text-gray-400">…</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -477,6 +583,7 @@ function ScheduleCard({ surgeryRooms, surgeryEvents, setSurgeryEvents, sterileRo
   const [view, setView] = useState('day'); // 'day' | 'week' | 'month' | 'agenda'
   const [currentDate, setCurrentDate] = useState(new Date());
   const [scale, setScale] = useState(0.85);
+  const [modal, setModal] = useState({ open: false, initial: null });
   const rooms = tab === 'surgery' ? surgeryRooms : sterileRooms;
   const events = tab === 'surgery' ? surgeryEvents : sterileEvents;
   const setEvents = tab === 'surgery' ? setSurgeryEvents : setSterileEvents;
@@ -510,8 +617,15 @@ function ScheduleCard({ surgeryRooms, surgeryEvents, setSurgeryEvents, sterileRo
     setCurrentDate(d);
   };
 
+  const saveFromModal = (data) => {
+    const exists = events.find((e) => e.id === data.id);
+    const next = exists ? events.map((e) => (e.id === data.id ? { ...e, ...data } : e)) : [...events, { ...data }];
+    setEvents(next);
+    setModal({ open: false, initial: null });
+  };
+
   return (
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
       <h2 className="text-sm font-semibold text-gray-900 mb-4">Randevular</h2>
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
@@ -547,18 +661,15 @@ function ScheduleCard({ surgeryRooms, surgeryEvents, setSurgeryEvents, sterileRo
         }} />
       )}
       {view === 'week' && (
-        <WeekAgenda date={currentDate} events={filteredEvents} onDayClick={(d) => { setCurrentDate(d); setView('day'); }} onEvent={(e) => {
-          // open editor via replacing InteractiveSchedule modal not available here; quick switch to day view
-          setCurrentDate(e.start);
-          setView('day');
-        }} />
+        <WeekAgenda date={currentDate} events={filteredEvents} onDayClick={(d) => { setCurrentDate(d); setView('day'); }} onEvent={(e) => setModal({ open: true, initial: e })} />
       )}
       {view === 'month' && (
-        <MonthGrid date={currentDate} events={filteredEvents} onDayClick={(d) => { setCurrentDate(d); setView('day'); }} onEvent={(e) => { setCurrentDate(e.start); setView('day'); }} />
+        <MonthGrid date={currentDate} events={filteredEvents} onDayClick={(d) => { setCurrentDate(d); setView('day'); }} onEvent={(e) => setModal({ open: true, initial: e })} />
       )}
       {view === 'agenda' && (
-        <AgendaList events={filteredEvents} onEvent={(e) => { setCurrentDate(e.start); setView('day'); }} />
+        <AgendaList events={filteredEvents} onEvent={(e) => setModal({ open: true, initial: e })} />
       )}
+      <AppointmentModal open={modal.open} onClose={() => setModal({ open: false, initial: null })} onSave={saveFromModal} initial={modal.initial} rooms={rooms} />
     </div>
   );
 }
@@ -566,11 +677,30 @@ function ScheduleCard({ surgeryRooms, surgeryEvents, setSurgeryEvents, sterileRo
 const BOTTOM_CARD_PX = 360;
 
 function TaskList({ fixedHeight = BOTTOM_CARD_PX }) {
+  const STORAGE_KEY_TASKS = 'dashboard_tasks';
   const [tasks, setTasks] = useState([
     { id: 't1', title: 'Bugünkü ameliyat setlerini doğrula', completed: false, urgency: 'Yüksek', assignedTo: 'u2', dueDate: new Date() },
     { id: 't2', title: 'Sterilizasyon döngüsü raporlarını kontrol et', completed: true, urgency: 'Orta', assignedTo: 'u1', dueDate: addMinutes(new Date(), 60 * 24) },
     { id: 't3', title: 'OR-2 ekipman bakım kaydı oluştur', completed: false, urgency: 'Düşük', assignedTo: 'u3', dueDate: addMinutes(new Date(), 60 * 48) },
   ]);
+  // hydrate tasks
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_TASKS);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const revived = Array.isArray(parsed) ? parsed.map((t) => ({ ...t, dueDate: t.dueDate ? new Date(t.dueDate) : new Date() })) : [];
+        if (revived.length) setTasks(revived);
+      }
+    } catch {}
+  }, []);
+  // persist tasks
+  useEffect(() => {
+    try {
+      const serializable = tasks.map((t) => ({ ...t, dueDate: (t.dueDate instanceof Date ? t.dueDate : new Date()).toISOString() }));
+      localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(serializable));
+    } catch {}
+  }, [tasks]);
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({ title: '', urgency: 'Orta', assignedTo: mockUsers[0].id });
   const [filters, setFilters] = useState({ text: '', priority: '', assignedTo: '', from: '', to: '' });
@@ -586,7 +716,7 @@ function TaskList({ fixedHeight = BOTTOM_CARD_PX }) {
     });
   }, [tasks, filters]);
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6" style={{ height: fixedHeight }}>
+    <div className="bg-white rounded-lg border border-gray-200 p-4" style={{ height: fixedHeight }}>
       <h2 className="text-sm font-semibold text-gray-900 mb-4">Görevler</h2>
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="grid grid-cols-12 gap-2 flex-1 mr-2">
@@ -735,7 +865,7 @@ function TaskList({ fixedHeight = BOTTOM_CARD_PX }) {
 
 function ActivityFeed({ items, fixedHeight = BOTTOM_CARD_PX }) {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6" style={{ height: fixedHeight }}>
+    <div className="bg-white rounded-lg border border-gray-200 p-4" style={{ height: fixedHeight }}>
       <h2 className="text-sm font-semibold text-gray-900 mb-4">Genel Bakış (Aktivite Akışı)</h2>
       <div className="mb-3 flex items-center justify-between">
         <div className="grid grid-cols-12 gap-2 flex-1 mr-2">
@@ -783,14 +913,16 @@ export default function AtillaDentalDashboard() {
 
   const today = new Date();
   const startOfDay = setTime(today, 8, 0);
+  const STORAGE_KEY_SURGERY = 'dashboard_surgery_events';
+  const STORAGE_KEY_STERILE = 'dashboard_sterile_events';
 
   const fallbackSurgeryRooms = ["OR-1", "OR-2", "OR-3"];
   const fallbackSurgeryEvents = useMemo(() => {
     return [
-      { id: "s1", room_id: "OR-1", label: "Diş çekimi (A01)", start: addMinutes(startOfDay, 15), end: addMinutes(startOfDay, 75), status: "in_progress" },
-      { id: "s2", room_id: "OR-2", label: "İmplant (B12)", start: addMinutes(startOfDay, 90), end: addMinutes(startOfDay, 150), status: "planned" },
-      { id: "s3", room_id: "OR-3", label: "Dolgu (C07)", start: addMinutes(startOfDay, 180), end: addMinutes(startOfDay, 240), status: "planned" },
-      { id: "s4", room_id: "OR-1", label: "Kanal tedavisi (D21)", start: addMinutes(startOfDay, 270), end: addMinutes(startOfDay, 360), status: "planned" },
+      { id: "s1", room_id: "OR-1", label: "Diş çekimi (A01)", type: 'Diş çekimi', start: addMinutes(startOfDay, 15), end: addMinutes(startOfDay, 75), status: "in_progress" },
+      { id: "s2", room_id: "OR-2", label: "İmplant (B12)", type: 'İmplant', start: addMinutes(startOfDay, 90), end: addMinutes(startOfDay, 150), status: "planned" },
+      { id: "s3", room_id: "OR-3", label: "Dolgu (C07)", type: 'Dolgu', start: addMinutes(startOfDay, 180), end: addMinutes(startOfDay, 240), status: "planned" },
+      { id: "s4", room_id: "OR-1", label: "Kanal tedavisi (D21)", type: 'Kanal tedavisi', start: addMinutes(startOfDay, 270), end: addMinutes(startOfDay, 360), status: "planned" },
     ];
   }, [startOfDay]);
 
@@ -837,6 +969,38 @@ export default function AtillaDentalDashboard() {
     }));
   }, [cycles, fallbackSterileEvents]);
   const [sterileEvents, setSterileEvents] = useState(initialSterileEvents);
+
+  // Hydrate from localStorage on mount
+  useEffect(() => {
+    try {
+      const rawS = localStorage.getItem(STORAGE_KEY_SURGERY);
+      if (rawS) {
+        const parsed = JSON.parse(rawS);
+        const revived = Array.isArray(parsed) ? parsed.map((e) => ({ ...e, start: new Date(e.start), end: new Date(e.end) })) : [];
+        if (revived.length) setSurgeryEvents(revived);
+      }
+      const rawT = localStorage.getItem(STORAGE_KEY_STERILE);
+      if (rawT) {
+        const parsed = JSON.parse(rawT);
+        const revived = Array.isArray(parsed) ? parsed.map((e) => ({ ...e, start: new Date(e.start), end: new Date(e.end) })) : [];
+        if (revived.length) setSterileEvents(revived);
+      }
+    } catch {}
+  }, []);
+
+  // Persist on change
+  useEffect(() => {
+    try {
+      const serializable = surgeryEvents.map((e) => ({ ...e, start: e.start.toISOString(), end: e.end.toISOString() }));
+      localStorage.setItem(STORAGE_KEY_SURGERY, JSON.stringify(serializable));
+    } catch {}
+  }, [surgeryEvents]);
+  useEffect(() => {
+    try {
+      const serializable = sterileEvents.map((e) => ({ ...e, start: e.start.toISOString(), end: e.end.toISOString() }));
+      localStorage.setItem(STORAGE_KEY_STERILE, JSON.stringify(serializable));
+    } catch {}
+  }, [sterileEvents]);
 
   // Activity items (visual spec data + sterilization scan events)
   const activityItems = useMemo(() => {
@@ -922,7 +1086,7 @@ export default function AtillaDentalDashboard() {
   }, [scanEvents]);
 
                         return (
-    <div className="grid grid-cols-12 gap-6">
+    <div className="grid grid-cols-12 gap-3 md:gap-4">
       {/* Top: Randevular */}
       <div className="col-span-12">
         <ScheduleCard
