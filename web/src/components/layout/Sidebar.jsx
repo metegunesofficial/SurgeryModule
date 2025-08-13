@@ -7,6 +7,8 @@ import {
   Scissors,
   TestTube,
   X,
+  CheckSquare,
+  Calendar,
 } from "lucide-react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useLayoutStore } from "@/stores/layout";
@@ -56,6 +58,36 @@ export function Sidebar() {
           >
             <Home className="w-4 h-4" />
             <span>Dashboard</span>
+          </NavLink>
+          <NavLink
+            to="/aktivite"
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              `${baseLinkClass} ${isActive ? activeClass : inactiveClass}`
+            }
+          >
+            <Activity className="w-4 h-4" />
+            <span>Aktivite Akışı</span>
+          </NavLink>
+          <NavLink
+            to="/gorevler"
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              `${baseLinkClass} ${isActive ? activeClass : inactiveClass}`
+            }
+          >
+            <CheckSquare className="w-4 h-4" />
+            <span>Görevler</span>
+          </NavLink>
+          <NavLink
+            to="/randevular"
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              `${baseLinkClass} ${isActive ? activeClass : inactiveClass}`
+            }
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Randevular</span>
           </NavLink>
           <NavLink
             to="/bildirimler"

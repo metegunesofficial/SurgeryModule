@@ -1,21 +1,26 @@
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import AtillaDentalDashboard from '../page.jsx';
 import { MemoryRouter } from 'react-router-dom';
 
-describe('Dashboard navigation', () => {
-  it('has a link to /canli-izleme labeled Canlı İzleme', async () => {
+describe('Dashboard navigation cleanup', () => {
+  it('does not render quick links like Canlı İzleme on the dashboard', () => {
     render(
       <MemoryRouter>
         <AtillaDentalDashboard />
       </MemoryRouter>
     );
+    expect(screen.queryByRole('link', { name: /Canlı İzleme/i })).toBeNull();
+  });
 
-    const link = screen.getByRole('link', { name: /Canlı İzleme/i });
-    expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute('href', '/canli-izleme');
-
-    // ensure it is clickable without throwing
-    await userEvent.click(link);
+  it('renders links to Aktivite and Görevler through CTA buttons', () => {
+    render(
+      <MemoryRouter>
+        <AtillaDentalDashboard />
+      </MemoryRouter>
+    );
+    const links = screen.getAllByRole('link', { name: /Tümünü Gör/i });
+    expect(links.length).toBeGreaterThanOrEqual(2);
+    expect(links.some((a) => a.getAttribute('href') === '/aktivite')).toBe(true);
+    expect(links.some((a) => a.getAttribute('href') === '/gorevler')).toBe(true);
   });
 });

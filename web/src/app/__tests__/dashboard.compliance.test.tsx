@@ -2,25 +2,22 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Dashboard from '../page.jsx';
 
-describe('Dashboard compliance widgets', () => {
-  it('renders IPSG, sterilization, incidents, audit, training cards', () => {
+describe('Dashboard sections', () => {
+  it('renders Görevler, Genel Bakış (Aktivite Akışı) and Randevular', () => {
     render(
       <MemoryRouter>
         <Dashboard />
       </MemoryRouter>
     );
 
-    // These will be implemented as headings/buttons in the page
-    const expectations = [
-      /Hasta Güvenliği Hedefleri/i,
-      /Sterilizasyon Kalite Göstergeleri/i,
-      /Olay Bildirimleri/i,
-      /Dokümantasyon ve Denetim/i,
-      /Eğitim Uyumu/i,
-    ];
-    for (const pattern of expectations) {
-      expect(screen.queryByText(pattern)).toBeTruthy();
-    }
+    expect(screen.getByText(/Görevler/i)).toBeInTheDocument();
+    expect(screen.getByText(/Genel Bakış \(Aktivite Akışı\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Randevular/i)).toBeInTheDocument();
+
+    // Old chart-only layout should not be present anymore
+    expect(screen.queryByText(/Ameliyathane Randevuları/i)).toBeNull();
+    expect(screen.queryByText(/Sterilizasyon Randevuları/i)).toBeNull();
+    expect(screen.queryByText(/Oda Durumları/i)).toBeNull();
   });
 });
 

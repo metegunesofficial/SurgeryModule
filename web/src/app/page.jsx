@@ -1,368 +1,952 @@
-import {
-  Calendar,
-  ExternalLink,
-  Eye,
-  Play,
-  Scissors,
-  BarChart3,
-  CheckCircle,
-  Users,
-} from "lucide-react";
-import { Link } from "react-router-dom";
+import { useMemo, useRef, useState } from "react";
+import { useSurgeryPlanningStore } from "@/stores/surgeryPlanning";
+import { useSterilizationStore } from "@/stores/sterilization";
+
+function minutesSinceMidnight(d) {
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+function addMinutes(base, minutes) {
+  const d = new Date(base);
+  d.setMinutes(d.getMinutes() + minutes);
+  return d;
+}
+
+function setTime(date, h, m) {
+  const d = new Date(date);
+  d.setHours(h, m, 0, 0);
+  return d;
+}
+
+function DayCalendar({
+  title,
+  rooms,
+  events,
+  startHour = 8,
+  endHour = 20,
+  variant = "card",
+}) {
+  const totalMinutes = (endHour - startHour) * 60;
+  const hours = useMemo(() => Array.from({ length: endHour - startHour + 1 }, (_, i) => startHour + i), [startHour, endHour]);
+
+  const content = (
+    <>
+      <h3 className="text-sm font-semibold text-gray-900 mb-4">{title}</h3>
+      <div className="overflow-x-auto">
+        <div className="min-w-[720px]">
+          <div className="grid" style={{ gridTemplateColumns: `4rem repeat(${rooms.length}, minmax(0, 1fr))` }}>
+            {/* Header */}
+            <div />
+            {rooms.map((r) => (
+              <div key={r} className="px-2 pb-2 text-xs font-medium text-gray-600">{r}</div>
+            ))}
+            {/* Body */}
+            <div className="col-span-1">
+              {hours.map((h, idx) => (
+                <div key={h} className="relative h-16 text-[11px] text-gray-500">
+                  <div className="absolute -top-2 right-1">{`${String(h).padStart(2, "0")}:00`}</div>
+                  {idx < hours.length - 1 && <div className="absolute left-0 right-0 top-0 border-t border-dashed border-gray-200" />}
+                </div>
+              ))}
+              </div>
+            {rooms.map((room) => (
+              <div key={room} className="relative border-l border-gray-100">
+                {/* Hour grid lines */}
+                {hours.map((h, idx) => (
+                  <div key={h} className="h-16 border-t border-dashed border-gray-100" />
+                ))}
+                {/* Events */}
+                <div className="absolute inset-0">
+                  {events
+                    .filter((e) => e.room_id === room)
+                    .map((e) => {
+                      const startMin = Math.max(0, minutesSinceMidnight(e.start) - startHour * 60);
+                      const endMin = Math.min(totalMinutes, minutesSinceMidnight(e.end) - startHour * 60);
+                      const top = (startMin / totalMinutes) * 100;
+                      const height = Math.max(18, ((endMin - startMin) / totalMinutes) * 100);
+                      const color =
+                        e.status === "in_progress"
+                          ? "bg-blue-500/80 border-blue-600"
+                          : e.status === "completed"
+                          ? "bg-emerald-500/80 border-emerald-600"
+                          : e.status === "cancelled"
+                          ? "bg-red-500/80 border-red-600"
+                          : "bg-amber-500/80 border-amber-600";
+                      return (
+                        <div
+                          key={e.id}
+                          className={`absolute left-2 right-2 rounded-md border text-white shadow-sm ${color}`}
+                          style={{ top: `${top}%`, height: `${height}%` }}
+                        >
+                          <div className="px-2 py-1">
+                            <div className="text-[11px] font-medium truncate">{e.label}</div>
+                            <div className="text-[10px] opacity-90">
+                              {e.start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              {" - "}
+                              {e.end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </div>
+                </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            ))}
+                  </div>
+                </div>
+              </div>
+    </>
+  );
+
+  if (variant === "embedded") {
+    return <div>{content}</div>;
+  }
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-6">{content}</div>
+  );
+}
+
+const mockUsers = [
+  { id: 'u1', name: 'Dr. Atilla', email: 'atilla@altaydental.com' },
+  { id: 'u2', name: 'Aslı Ataseven', email: 'asli@altaydental.com' },
+  { id: 'u3', name: 'Mehmet Işlek', email: 'mehmet@altaydental.com' },
+];
+
+function UserBadge({ userId }) {
+  const u = mockUsers.find((x) => x.id === userId);
+  const initials = u?.name?.split(' ')
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join('') || '?';
+  return (
+                <div className="flex items-center gap-2">
+      <div className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
+        {initials}
+                </div>
+      <span className="text-xs text-gray-700">{u?.name || 'Atanmadı'}</span>
+              </div>
+  );
+}
+
+function UrgencyChip({ level }) {
+  const styles = {
+    Düşük: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    Orta: 'bg-amber-50 text-amber-700 border-amber-200',
+    Yüksek: 'bg-orange-50 text-orange-700 border-orange-200',
+    Kritik: 'bg-red-50 text-red-700 border-red-200',
+  };
+  return (
+    <span className={`text-[10px] border rounded px-2 py-0.5 ${styles[level] || 'bg-gray-50 text-gray-700 border-gray-200'}`}>
+      {level || 'Belirsiz'}
+    </span>
+  );
+}
+
+// Helpers for calendar views
+function isSameDay(a, b) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+function startOfWeek(d) {
+  const date = new Date(d);
+  const day = (date.getDay() + 6) % 7; // Monday=0
+  date.setDate(date.getDate() - day);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+function endOfWeek(d) {
+  const start = startOfWeek(d);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  end.setHours(23, 59, 59, 999);
+  return end;
+}
+function daysInMonthGrid(d) {
+  const first = new Date(d.getFullYear(), d.getMonth(), 1);
+  const start = startOfWeek(first);
+  const days = [];
+  for (let i = 0; i < 42; i++) {
+    const day = new Date(start);
+    day.setDate(start.getDate() + i);
+    days.push(day);
+  }
+  return days;
+}
+
+function AppointmentModal({ open, onClose, onSave, initial, rooms }) {
+  const [form, setForm] = useState(() => {
+    if (!initial) return null;
+    return {
+      title: initial.label || '',
+      room_id: initial.room_id || (rooms?.[0] || ''),
+      date: initial.start ? initial.start.toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+      time: initial.start ? initial.start.toTimeString().slice(0, 5) : '09:00',
+      duration: Math.max(30, Math.round(((initial.end - initial.start) / 60000) || 60)),
+      type: initial.type || 'Cerrahi',
+      status: initial.status || 'Bekleniyor',
+      note: initial.note || '',
+      doctor_from: initial.doctor_from || 'Aslı Ataseven',
+      doctor_to: initial.doctor_to || 'Mehmet Işlek',
+      sms: initial.sms ?? true,
+    };
+  });
+  if (!open || !form) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="w-[680px] bg-white rounded-lg border border-gray-200 shadow-xl">
+        <div className="px-4 py-3 border-b">
+          <h3 className="text-sm font-semibold text-gray-900">Randevu Oluştur / Düzenle</h3>
+        </div>
+        <div className="p-4 grid grid-cols-12 gap-3">
+          <div className="col-span-12">
+            <input className="w-full border rounded px-3 py-2 text-sm" placeholder="Başlık" value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                </div>
+          <div className="col-span-12">
+            <label className="text-[11px] text-gray-500">Doktor</label>
+            <div className="grid grid-cols-2 gap-2">
+              <input className="border rounded px-2 py-1 text-sm" value={form.doctor_from} onChange={(e) => setForm({ ...form, doctor_from: e.target.value })} />
+              <input className="border rounded px-2 py-1 text-sm" value={form.doctor_to} onChange={(e) => setForm({ ...form, doctor_to: e.target.value })} />
+                      </div>
+                    </div>
+          <div className="col-span-6">
+            <label className="block text-[11px] text-gray-500 mb-1">Oda/Ünite</label>
+            <select className="w-full border rounded px-2 py-1 text-sm" value={form.room_id}
+              onChange={(e) => setForm({ ...form, room_id: e.target.value })}>
+              {rooms?.map((r) => (
+                <option key={r}>{r}</option>
+              ))}
+            </select>
+          </div>
+          <div className="col-span-3">
+            <label className="block text-[11px] text-gray-500 mb-1">Süre (dk)</label>
+            <input type="number" className="w-full border rounded px-2 py-1 text-sm" value={form.duration}
+              onChange={(e) => setForm({ ...form, duration: Number(e.target.value || 0) })} />
+          </div>
+          <div className="col-span-3">
+            <label className="block text-[11px] text-gray-500 mb-1">Tarih</label>
+            <input type="date" className="w-full border rounded px-2 py-1 text-sm" value={form.date}
+              onChange={(e) => setForm({ ...form, date: e.target.value })} />
+                  </div>
+          <div className="col-span-3">
+            <label className="block text-[11px] text-gray-500 mb-1">Saat</label>
+            <input type="time" className="w-full border rounded px-2 py-1 text-sm" value={form.time}
+              onChange={(e) => setForm({ ...form, time: e.target.value })} />
+                      </div>
+          <div className="col-span-3">
+            <label className="block text-[11px] text-gray-500 mb-1">Durum</label>
+            <select className="w-full border rounded px-2 py-1 text-sm" value={form.status}
+              onChange={(e) => setForm({ ...form, status: e.target.value })}>
+              <option>Bekleniyor</option>
+              <option>Planlandı</option>
+              <option>Tamamlandı</option>
+              <option>İptal</option>
+            </select>
+                    </div>
+          <div className="col-span-12">
+            <label className="block text-[11px] text-gray-500 mb-1">Açıklama</label>
+            <textarea className="w-full border rounded px-2 py-1 text-sm" rows={3} value={form.note}
+              onChange={(e) => setForm({ ...form, note: e.target.value })} />
+                  </div>
+          <div className="col-span-12 flex items-center gap-2">
+            <input id="sms" type="checkbox" checked={!!form.sms} onChange={(e) => setForm({ ...form, sms: e.target.checked })} />
+            <label htmlFor="sms" className="text-sm">Randevu SMS'i gönderilsin mi?</label>
+                      </div>
+                    </div>
+        <div className="px-4 py-3 border-t flex justify-end gap-2">
+          <button className="px-3 py-1.5 text-xs bg-gray-100 rounded hover:bg-gray-200" onClick={onClose}>İptal</button>
+          <button className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700" onClick={() => {
+            const [hh, mm] = String(form.time || '09:00').split(':').map(Number);
+            const start = new Date(form.date + 'T00:00:00');
+            start.setHours(hh, mm, 0, 0);
+            const end = addMinutes(start, Number(form.duration) || 60);
+            onSave({
+              ...initial,
+              label: form.title || 'Randevu',
+              room_id: form.room_id,
+              start,
+              end,
+              status: form.status,
+              note: form.note,
+              doctor_from: form.doctor_from,
+              doctor_to: form.doctor_to,
+              sms: form.sms,
+            });
+          }}>Oluştur</button>
+                  </div>
+                      </div>
+                    </div>
+  );
+}
+
+function InteractiveSchedule({ rooms, events, onChange, startHour = 8, endHour = 20, scale = 1 }) {
+  const totalMinutes = (endHour - startHour) * 60;
+  const hours = useMemo(() => Array.from({ length: endHour - startHour + 1 }, (_, i) => startHour + i), [startHour, endHour]);
+  const scrollRef = useRef(null);
+  const gridRef = useRef(null);
+  const [modal, setModal] = useState({ open: false, initial: null });
+  const rowHeight = Math.max(28, Math.round(64 * scale));
+  const leftColWidthPx = 64; // 4rem
+
+  const openCreateAt = (clientX, clientY) => {
+    const gridEl = gridRef.current;
+    const scrollEl = scrollRef.current;
+    if (!gridEl || !scrollEl) return;
+    const rect = gridEl.getBoundingClientRect();
+    const y = clientY - rect.top + scrollEl.scrollTop;
+    const x = clientX - rect.left;
+    const minutesFromTop = Math.max(0, Math.min(totalMinutes, (y / (rowHeight * (endHour - startHour))) * totalMinutes));
+    const start = addMinutes(setTime(new Date(), startHour, 0), Math.round(minutesFromTop / 5) * 5);
+    const innerWidth = rect.width - leftColWidthPx;
+    const colWidth = Math.max(1, innerWidth / rooms.length);
+    const colIndex = Math.max(0, Math.min(rooms.length - 1, Math.floor((x - leftColWidthPx) / colWidth)));
+    const room_id = rooms[colIndex] || rooms[0];
+    setModal({ open: true, initial: { id: `n${Date.now()}`, room_id, label: '', start, end: addMinutes(start, 60), status: 'Planlandı' } });
+  };
+
+  const save = (data) => {
+    const exists = events.find((e) => e.id === data.id);
+    if (exists) {
+      onChange(events.map((e) => (e.id === data.id ? { ...e, ...data } : e)));
+    } else {
+      onChange([...events, { ...data }]);
+    }
+    setModal({ open: false, initial: null });
+  };
+
+  return (
+    <div className="relative h-96 overflow-y-auto rounded-md border" ref={scrollRef}>
+      <div ref={gridRef} className="min-w-[720px]">
+        <div className="grid" style={{ gridTemplateColumns: `4rem repeat(${rooms.length}, minmax(0, 1fr))` }}>
+          <div />
+          {rooms.map((r) => (
+            <div key={r} className="px-2 pb-2 text-xs font-medium text-gray-600">{r}</div>
+          ))}
+          <div className="col-span-1 select-none">
+            {hours.map((h, idx) => (
+              <div key={h} className="relative text-[11px] text-gray-500" style={{ height: rowHeight }}>
+                <div className="absolute -top-2 right-1">{`${String(h).padStart(2, '0')}:00`}</div>
+                {idx < hours.length - 1 && <div className="absolute left-0 right-0 top-0 border-t border-dashed border-gray-200" />}
+              </div>
+            ))}
+          </div>
+          {rooms.map((room) => (
+            <div key={room} className="relative border-l border-gray-100">
+              {hours.map((h) => (
+                <div key={h} className="border-t border-dashed border-gray-100" style={{ height: rowHeight }} />
+              ))}
+              <div
+                className="absolute inset-0"
+                onClick={(e) => openCreateAt(e.clientX, e.clientY)}
+              >
+                {events.filter((e) => e.room_id === room).map((e) => {
+                  const startMin = Math.max(0, minutesSinceMidnight(e.start) - startHour * 60);
+                  const endMin = Math.min(totalMinutes, minutesSinceMidnight(e.end) - startHour * 60);
+                  const top = (startMin / totalMinutes) * 100;
+                  const minTile = Math.max(12, Math.round(18 * scale));
+                  const height = Math.max(minTile, ((endMin - startMin) / totalMinutes) * 100);
+                  const labelCls = scale < 0.9 ? 'text-[10px]' : 'text-[11px]';
+                  const timeCls = scale < 0.9 ? 'text-[9px]' : 'text-[10px]';
+                  const padCls = scale < 0.9 ? 'px-1 py-0.5' : 'px-2 py-1';
+                  const color = e.status === 'in_progress' ? 'bg-blue-500/80 border-blue-600' : e.status === 'completed' ? 'bg-emerald-500/80 border-emerald-600' : e.status === 'cancelled' ? 'bg-red-500/80 border-red-600' : 'bg-amber-500/80 border-amber-600';
+                  return (
+                    <div
+                      key={e.id}
+                      className={`absolute left-2 right-2 rounded-md border text-white shadow-sm ${color}`}
+                      style={{ top: `${top}%`, height: `${height}%` }}
+                      onClick={(ev) => {
+                        ev.stopPropagation();
+                        setModal({ open: true, initial: e });
+                      }}
+                    >
+                      <div className={`${padCls}`}>
+                        <div className={`${labelCls} font-medium truncate`}>{e.label}</div>
+                        <div className={`${timeCls} opacity-90`}>
+                          {e.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {' - '}
+                          {e.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <AppointmentModal open={modal.open} onClose={() => setModal({ open: false, initial: null })} onSave={save} initial={modal.initial} rooms={rooms} />
+    </div>
+  );
+}
+
+function AgendaList({ events, onEvent }) {
+  const sorted = [...events].sort((a, b) => a.start.getTime() - b.start.getTime());
+  return (
+    <div className="h-96 overflow-y-auto rounded-md border">
+      <ul className="divide-y">
+        {sorted.map((e) => (
+          <li key={e.id} className="p-3 hover:bg-gray-50 cursor-pointer" onClick={() => onEvent?.(e)}>
+            <div className="text-sm font-medium text-gray-900">{e.label}</div>
+            <div className="text-xs text-gray-600">
+              {e.start.toLocaleDateString()} {e.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {e.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </div>
+            <div className="text-xs text-gray-500">{e.room_id}</div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function WeekAgenda({ date, events, onDayClick, onEvent }) {
+  const start = startOfWeek(date);
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    return d;
+  });
+  return (
+    <div className="h-96 overflow-y-auto rounded-md border p-3">
+      {days.map((d) => {
+        const dayEvents = events.filter((e) => isSameDay(e.start, d));
+        return (
+          <div key={d.toISOString()} className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-sm font-semibold text-gray-900">{d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: '2-digit' })}</h4>
+              <button className="text-xs text-blue-600 hover:underline" onClick={() => onDayClick?.(d)}>Günü Aç</button>
+            </div>
+            {dayEvents.length === 0 ? (
+              <div className="text-xs text-gray-500">Kayıt yok</div>
+            ) : (
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {dayEvents.map((e) => (
+                  <li key={e.id} className="border rounded p-2 hover:bg-gray-50 cursor-pointer" onClick={() => onEvent?.(e)}>
+                    <div className="text-sm font-medium text-gray-900 truncate">{e.label}</div>
+                    <div className="text-xs text-gray-600">
+                      {e.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {e.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </li>
+                ))}
+                </ul>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function MonthGrid({ date, events, onDayClick, onEvent }) {
+  const days = daysInMonthGrid(date);
+  return (
+    <div className="h-96 overflow-y-auto rounded-md border">
+      <div className="grid grid-cols-7 border-b text-xs text-gray-500">
+        {['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'].map((d) => (
+          <div key={d} className="px-2 py-1 text-center">{d}</div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7">
+        {days.map((d) => {
+          const inMonth = d.getMonth() === date.getMonth();
+          const dayEvents = events.filter((e) => isSameDay(e.start, d)).slice(0, 3);
+          return (
+            <div key={d.toISOString()} className={`h-24 border -mt-px -ml-px p-1 ${inMonth ? 'bg-white' : 'bg-gray-50'}`} onClick={() => onDayClick?.(d)}>
+              <div className="text-[11px] text-gray-500 mb-1">{d.getDate()}</div>
+              <div className="space-y-1">
+                {dayEvents.map((e) => (
+                  <div key={e.id} className="text-[10px] px-1 py-0.5 rounded bg-blue-50 text-blue-700 truncate cursor-pointer" onClick={(ev) => { ev.stopPropagation(); onEvent?.(e); }}>{e.label}</div>
+                ))}
+                {events.filter((e) => isSameDay(e.start, d)).length > 3 && (
+                  <div className="text-[10px] text-gray-400">…</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ScheduleCard({ surgeryRooms, surgeryEvents, setSurgeryEvents, sterileRooms, sterileEvents, setSterileEvents }) {
+  const [tab, setTab] = useState('surgery');
+  const [view, setView] = useState('day'); // 'day' | 'week' | 'month' | 'agenda'
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [scale, setScale] = useState(0.85);
+  const rooms = tab === 'surgery' ? surgeryRooms : sterileRooms;
+  const events = tab === 'surgery' ? surgeryEvents : sterileEvents;
+  const setEvents = tab === 'surgery' ? setSurgeryEvents : setSterileEvents;
+
+  const filteredEvents = useMemo(() => {
+    if (view === 'day') {
+      return events.filter((e) => isSameDay(e.start, currentDate));
+    }
+    if (view === 'week') {
+      const start = startOfWeek(currentDate);
+      const end = endOfWeek(currentDate);
+      return events.filter((e) => e.start >= start && e.start <= end);
+    }
+    if (view === 'month') {
+      const m = currentDate.getMonth();
+      const y = currentDate.getFullYear();
+      return events.filter((e) => e.start.getFullYear() === y && e.start.getMonth() === m);
+    }
+    // agenda
+    const start = startOfWeek(currentDate);
+    const end = endOfWeek(currentDate);
+    return events.filter((e) => e.start >= start && e.start <= end);
+  }, [events, view, currentDate]);
+
+  const moveDate = (delta) => {
+    const d = new Date(currentDate);
+    if (view === 'day') d.setDate(d.getDate() + delta);
+    else if (view === 'week') d.setDate(d.getDate() + 7 * delta);
+    else if (view === 'month') d.setMonth(d.getMonth() + delta);
+    else d.setDate(d.getDate() + 7 * delta);
+    setCurrentDate(d);
+  };
+
+  return (
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <h2 className="text-sm font-semibold text-gray-900 mb-4">Randevular</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2">
+          <button className={`px-3 py-1.5 text-xs rounded border ${tab === 'surgery' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700'}`} onClick={() => setTab('surgery')}>Ameliyathane</button>
+          <button className={`px-3 py-1.5 text-xs rounded border ${tab === 'sterile' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700'}`} onClick={() => setTab('sterile')}>Sterilizasyon</button>
+        </div>
+        <div className="flex items-center gap-2">
+          <button className="px-2 py-1 text-sm border rounded" onClick={() => moveDate(-1)}>‹</button>
+          <input type="date" className="border rounded px-2 py-1 text-sm" value={currentDate.toISOString().slice(0,10)} onChange={(e) => setCurrentDate(new Date(e.target.value))} />
+          <button className="px-2 py-1 text-sm border rounded" onClick={() => moveDate(1)}>›</button>
+        </div>
+        <div className="flex items-center gap-2">
+          {['day','week','month','agenda'].map((v) => (
+            <button key={v} className={`px-3 py-1.5 text-xs rounded border ${view === v ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700'}`} onClick={() => setView(v)}>
+              {v === 'day' ? 'Günlük' : v === 'week' ? 'Haftalık' : v === 'month' ? 'Aylık' : 'Ajanda'}
+            </button>
+          ))}
+          {view === 'day' && (
+            <div className="ml-2 flex items-center gap-1">
+              <button className="px-2 py-1 text-xs border rounded" onClick={() => setScale((s) => Math.max(0.6, +(s - 0.1).toFixed(2)))}>-</button>
+              <input type="range" min="0.6" max="1.4" step="0.05" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} />
+              <button className="px-2 py-1 text-xs border rounded" onClick={() => setScale((s) => Math.min(1.4, +(s + 0.1).toFixed(2)))}>+</button>
+            </div>
+          )}
+        </div>
+      </div>
+      {view === 'day' && (
+        <InteractiveSchedule rooms={rooms} events={filteredEvents} scale={scale} onChange={(next) => {
+          // merge into original events array by id
+          const nextIds = new Set(next.map((e) => e.id));
+          const others = events.filter((e) => !nextIds.has(e.id));
+          setEvents([...others, ...next]);
+        }} />
+      )}
+      {view === 'week' && (
+        <WeekAgenda date={currentDate} events={filteredEvents} onDayClick={(d) => { setCurrentDate(d); setView('day'); }} onEvent={(e) => {
+          // open editor via replacing InteractiveSchedule modal not available here; quick switch to day view
+          setCurrentDate(e.start);
+          setView('day');
+        }} />
+      )}
+      {view === 'month' && (
+        <MonthGrid date={currentDate} events={filteredEvents} onDayClick={(d) => { setCurrentDate(d); setView('day'); }} onEvent={(e) => { setCurrentDate(e.start); setView('day'); }} />
+      )}
+      {view === 'agenda' && (
+        <AgendaList events={filteredEvents} onEvent={(e) => { setCurrentDate(e.start); setView('day'); }} />
+      )}
+    </div>
+  );
+}
+
+const BOTTOM_CARD_PX = 360;
+
+function TaskList({ fixedHeight = BOTTOM_CARD_PX }) {
+  const [tasks, setTasks] = useState([
+    { id: 't1', title: 'Bugünkü ameliyat setlerini doğrula', completed: false, urgency: 'Yüksek', assignedTo: 'u2', dueDate: new Date() },
+    { id: 't2', title: 'Sterilizasyon döngüsü raporlarını kontrol et', completed: true, urgency: 'Orta', assignedTo: 'u1', dueDate: addMinutes(new Date(), 60 * 24) },
+    { id: 't3', title: 'OR-2 ekipman bakım kaydı oluştur', completed: false, urgency: 'Düşük', assignedTo: 'u3', dueDate: addMinutes(new Date(), 60 * 48) },
+  ]);
+  const [editingId, setEditingId] = useState(null);
+  const [draft, setDraft] = useState({ title: '', urgency: 'Orta', assignedTo: mockUsers[0].id });
+  const [filters, setFilters] = useState({ text: '', priority: '', assignedTo: '', from: '', to: '' });
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((t) => {
+      const matchesText = !filters.text || (t.title || '').toLowerCase().includes(filters.text.toLowerCase());
+      const matchesPriority = !filters.priority || t.urgency === filters.priority;
+      const matchesAssignee = !filters.assignedTo || t.assignedTo === filters.assignedTo;
+      const d = t.dueDate instanceof Date ? t.dueDate : new Date();
+      const fromOk = !filters.from || d >= new Date(filters.from + 'T00:00:00');
+      const toOk = !filters.to || d <= new Date(filters.to + 'T23:59:59');
+      return matchesText && matchesPriority && matchesAssignee && fromOk && toOk;
+    });
+  }, [tasks, filters]);
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-6" style={{ height: fixedHeight }}>
+      <h2 className="text-sm font-semibold text-gray-900 mb-4">Görevler</h2>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="grid grid-cols-12 gap-2 flex-1 mr-2">
+          <input className="col-span-12 lg:col-span-4 border rounded px-2 py-1 text-sm" placeholder="Tümü"
+            value={filters.text}
+            onChange={(e) => setFilters((f) => ({ ...f, text: e.target.value }))}
+          />
+          <select className="col-span-6 lg:col-span-3 border rounded px-2 py-1 text-sm" value={filters.priority}
+            onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value }))}
+          >
+            <option value="">Öncelik (Tümü)</option>
+            <option>Düşük</option>
+            <option>Orta</option>
+            <option>Yüksek</option>
+            <option>Kritik</option>
+          </select>
+          <select className="col-span-6 lg:col-span-3 border rounded px-2 py-1 text-sm" value={filters.assignedTo}
+            onChange={(e) => setFilters((f) => ({ ...f, assignedTo: e.target.value }))}
+          >
+            <option value="">Kişi (Tümü)</option>
+            {mockUsers.map((u) => (
+              <option key={u.id} value={u.id}>{u.name}</option>
+            ))}
+          </select>
+          <input type="date" className="col-span-6 lg:col-span-1 border rounded px-2 py-1 text-sm" value={filters.from}
+            onChange={(e) => setFilters((f) => ({ ...f, from: e.target.value }))}
+          />
+          <input type="date" className="col-span-6 lg:col-span-1 border rounded px-2 py-1 text-sm" value={filters.to}
+            onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value }))}
+          />
+        </div>
+        <a href="/gorevler" className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Tümünü Gör</a>
+      </div>
+      <div className="mb-3 flex items-center gap-2">
+        <button
+          className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+          onClick={() => {
+            const nid = `t${Date.now()}`;
+            setDraft({ title: '', urgency: 'Orta', assignedTo: mockUsers[0].id });
+            setEditingId(nid);
+            setTasks((prev) => [{ id: nid, title: '', completed: false, urgency: 'Orta', assignedTo: mockUsers[0].id, dueDate: new Date() }, ...prev]);
+          }}
+        >
+          Yeni Görev
+                  </button>
+                </div>
+      <ul className="space-y-3 overflow-y-auto pr-1" style={{ maxHeight: fixedHeight - 150 }}>
+        {filteredTasks.map((task) => {
+          const isEditing = editingId === task.id;
+          return (
+            <li key={task.id} className="flex items-start gap-3">
+              <input
+                id={task.id}
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                checked={task.completed}
+                onChange={() =>
+                  setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, completed: !t.completed } : t)))
+                }
+              />
+              <div className="flex-1">
+                {isEditing ? (
+                  <div className="grid grid-cols-12 gap-2">
+                    <div className="col-span-12">
+                      <input
+                        autoFocus
+                        className="w-full border rounded px-2 py-1 text-sm"
+                        placeholder="Görev açıklaması"
+                        defaultValue={task.title}
+                        onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
+                      />
+                  </div>
+                    <div className="col-span-6">
+                      <label className="block text-[11px] text-gray-500 mb-1">Aciliyet</label>
+                      <select
+                        className="w-full border rounded px-2 py-1 text-sm"
+                        defaultValue={task.urgency}
+                        onChange={(e) => setDraft((d) => ({ ...d, urgency: e.target.value }))}
+                      >
+                        <option>Düşük</option>
+                        <option>Orta</option>
+                        <option>Yüksek</option>
+                        <option>Kritik</option>
+                      </select>
+                    </div>
+                    <div className="col-span-6">
+                      <label className="block text-[11px] text-gray-500 mb-1">Atanan</label>
+                      <select
+                        className="w-full border rounded px-2 py-1 text-sm"
+                        defaultValue={task.assignedTo}
+                        onChange={(e) => setDraft((d) => ({ ...d, assignedTo: e.target.value }))}
+                      >
+                        {mockUsers.map((u) => (
+                          <option key={u.id} value={u.id}>{u.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-span-12 flex gap-2 justify-end">
+                      <button
+                        className="px-3 py-1.5 text-xs bg-gray-100 rounded hover:bg-gray-200"
+                        onClick={() => {
+                          // Revert creation if new and empty
+                          if (task.title === '' && draft.title === '') {
+                            setTasks((prev) => prev.filter((t) => t.id !== task.id));
+                          }
+                          setEditingId(null);
+                        }}
+                      >
+                        İptal
+                      </button>
+                      <button
+                        className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                        onClick={() => {
+                          setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, ...draft, title: draft.title || t.title } : t)));
+                          setEditingId(null);
+                        }}
+                      >
+                        Kaydet
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <label htmlFor={task.id} className={`text-sm ${task.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                        {task.title || 'Yeni görev'}
+                      </label>
+                      <div className="mt-1 flex items-center gap-3">
+                        <UserBadge userId={task.assignedTo} />
+                        <UrgencyChip level={task.urgency} />
+                    </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button className="text-xs text-blue-600 hover:underline" onClick={() => setEditingId(task.id)}>Düzenle</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+                </div>
+  );
+}
+
+function ActivityFeed({ items, fixedHeight = BOTTOM_CARD_PX }) {
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-6" style={{ height: fixedHeight }}>
+      <h2 className="text-sm font-semibold text-gray-900 mb-4">Genel Bakış (Aktivite Akışı)</h2>
+      <div className="mb-3 flex items-center justify-between">
+        <div className="grid grid-cols-12 gap-2 flex-1 mr-2">
+          <input className="col-span-12 lg:col-span-4 border rounded px-2 py-1 text-sm" placeholder="Tümü" />
+          <input className="col-span-6 lg:col-span-4 border rounded px-2 py-1 text-sm" placeholder="Kişi Seç" />
+          <input className="col-span-6 lg:col-span-4 border rounded px-2 py-1 text-sm" placeholder="Tarih Aralığı Seç" />
+        </div>
+        <a href="/aktivite" className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Tümünü Gör</a>
+      </div>
+      <ol className="relative border-l border-gray-200 ml-2 overflow-y-auto pr-1" style={{ maxHeight: fixedHeight - 120 }}>
+        {items.map((it, idx) => (
+          <li key={idx} className="mb-5 ml-4">
+            <div className="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full bg-blue-500 border border-white" />
+            <time className="block text-xs text-gray-500 mb-1">
+              {it.ts.toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: undefined })}
+            </time>
+            {it.title ? (
+                <div>
+                <p className="text-sm font-medium text-gray-900">{it.title}</p>
+                {it.meta && (
+                  <div className="mt-1 text-xs text-gray-700 space-y-0.5">
+                    <div>Doktor: {it.meta.doctor_from} → {it.meta.doctor_to}</div>
+                    <div>Tarih: {it.meta.date}</div>
+                    <div>Süre: {it.meta.duration}</div>
+                    <div>Randevu Tipi: {it.meta.type}</div>
+                    <div>Randevu Durumu: {it.meta.status}</div>
+                    <div>Açıklama: {it.meta.note}</div>
+                    <div className="text-gray-500">Güncelleyen: {it.meta.author}</div>
+                  </div>
+                )}
+                    </div>
+            ) : (
+              <p className="text-sm text-gray-800">{it.text}</p>
+            )}
+          </li>
+        ))}
+      </ol>
+                  </div>
+  );
+}
 
 export default function AtillaDentalDashboard() {
-  return (
-    <>
-          {/* Başlık ve breadcrumb kaldırıldı */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex gap-3">
-              <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">
-                <Eye className="w-4 h-4" />
-                Sistem durumunu gör
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700">
-                <Play className="w-4 h-4" />
-                Sterilizasyon başlat
-              </button>
-              <Link to="/canli-izleme" className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 border border-blue-200 rounded-md hover:bg-blue-50">
-                Canlı İzleme
-              </Link>
-            </div>
-          </div>
+  const { cases } = useSurgeryPlanningStore();
+  const { cycles, events: scanEvents } = useSterilizationStore();
 
-          <div className="grid grid-cols-12 gap-6 lg:grid-cols-12 md:grid-cols-12 sm:grid-cols-1">
-            {/* Left Column */}
-            <div className="col-span-12 lg:col-span-4 space-y-6">
-              {/* Surgery Status */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">Durum</h3>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  <span className="text-sm text-gray-600">Aktif</span>
-                  <Calendar className="w-4 h-4 text-gray-400 ml-auto" />
-                  <span className="text-sm text-gray-500">
-                    Oluşturulma 2025/08/08
-                  </span>
-                </div>
-              </div>
+  const today = new Date();
+  const startOfDay = setTime(today, 8, 0);
 
-              {/* Premium Surgery Management */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-gray-900">
-                    Premium ameliyat yönetimi
-                  </h3>
-                  <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
-                    <span className="text-white text-xs">+</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  <span className="text-sm text-gray-600">Aktif</span>
-                </div>
-              </div>
+  const fallbackSurgeryRooms = ["OR-1", "OR-2", "OR-3"];
+  const fallbackSurgeryEvents = useMemo(() => {
+    return [
+      { id: "s1", room_id: "OR-1", label: "Diş çekimi (A01)", start: addMinutes(startOfDay, 15), end: addMinutes(startOfDay, 75), status: "in_progress" },
+      { id: "s2", room_id: "OR-2", label: "İmplant (B12)", start: addMinutes(startOfDay, 90), end: addMinutes(startOfDay, 150), status: "planned" },
+      { id: "s3", room_id: "OR-3", label: "Dolgu (C07)", start: addMinutes(startOfDay, 180), end: addMinutes(startOfDay, 240), status: "planned" },
+      { id: "s4", room_id: "OR-1", label: "Kanal tedavisi (D21)", start: addMinutes(startOfDay, 270), end: addMinutes(startOfDay, 360), status: "planned" },
+    ];
+  }, [startOfDay]);
 
-              {/* Operating Room List */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">Odalar</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                      <span className="text-sm text-gray-600">Aktif</span>
-                    </div>
-                    <ExternalLink className="w-4 h-4 text-gray-400" />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                      <span className="text-sm text-gray-600">Bakımda</span>
-                    </div>
-                    <ExternalLink className="w-4 h-4 text-gray-400" />
-                  </div>
-                </div>
-              </div>
+  const surgeryRooms = useMemo(() => {
+    const rooms = Array.from(new Set(cases.map((c) => c.room_id)));
+    return rooms.length ? rooms : fallbackSurgeryRooms;
+  }, [cases]);
 
-              {/* Daily Sterilization */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-semibold text-gray-900">
-                    Günlük sterilizasyon
-                  </h3>
-                  <ExternalLink className="w-4 h-4 text-gray-400" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span className="text-sm text-gray-600">Aktif</span>
-                </div>
-              </div>
+  const initialSurgeryEvents = useMemo(() => {
+    if (cases.length === 0) return fallbackSurgeryEvents;
+    return cases.map((c) => ({
+      id: c.case_id,
+      room_id: c.room_id,
+      label: `${c.procedure_code}`,
+      start: new Date(c.scheduled_start),
+      end: addMinutes(new Date(c.scheduled_start), c.estimated_duration_min),
+      status: c.status,
+    }));
+  }, [cases, fallbackSurgeryEvents]);
+  const [surgeryEvents, setSurgeryEvents] = useState(initialSurgeryEvents);
 
-              {/* System Tests */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
-                    <Users className="w-4 h-4" />
-                    Personel davet et
-                  </button>
-                  <button className="flex items-center gap-2 px-3 py-1 text-sm text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100">
-                    <Play className="w-4 h-4" />
-                    Sistem testi
-                  </button>
-                </div>
+  const fallbackSterileRooms = ["ST-1", "ST-2"];
+  const fallbackSterileEvents = useMemo(() => {
+    return [
+      { id: "c1", room_id: "ST-1", label: "B Buhar Döngüsü", start: addMinutes(startOfDay, 30), end: addMinutes(startOfDay, 120), status: "in_progress" },
+      { id: "c2", room_id: "ST-2", label: "Plazma Döngüsü", start: addMinutes(startOfDay, 150), end: addMinutes(startOfDay, 240), status: "planned" },
+    ];
+  }, [startOfDay]);
 
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center justify-between p-3 border border-gray-200 rounded">
-                    <div>
-                      <p className="font-medium text-gray-900">11 Ağu 2025</p>
-                      <div className="flex gap-4 text-gray-600">
-                        <span>🌡️ 22°C</span>
-                        <span>💨 45% nem</span>
-                      </div>
-                    </div>
-                    <ExternalLink className="w-4 h-4 text-gray-400" />
-                  </div>
+  const sterileRooms = useMemo(() => {
+    const rooms = Array.from(new Set(cycles.map((cy) => cy.device_id)));
+    return rooms.length ? rooms : fallbackSterileRooms;
+  }, [cycles]);
 
-                  <div className="flex items-center justify-between p-3 border border-gray-200 rounded">
-                    <div>
-                      <p className="font-medium text-gray-900">10 Ağu 2025</p>
-                      <div className="flex gap-4 text-gray-600">
-                        <span>🌡️ 23°C</span>
-                        <span>💨 43% nem</span>
-                      </div>
-                    </div>
-                    <ExternalLink className="w-4 h-4 text-gray-400" />
-                  </div>
+  const initialSterileEvents = useMemo(() => {
+    if (cycles.length === 0) return fallbackSterileEvents;
+    return cycles.map((cy) => ({
+      id: cy.cycle_id,
+      room_id: cy.device_id,
+      label: `${cy.type.toUpperCase()} (${cy.result.toUpperCase()})`,
+      start: new Date(cy.start_time),
+      end: new Date(cy.end_time),
+      status: cy.result === "pass" ? "completed" : "cancelled",
+    }));
+  }, [cycles, fallbackSterileEvents]);
+  const [sterileEvents, setSterileEvents] = useState(initialSterileEvents);
 
-                  <div className="flex items-center justify-between p-3 border border-gray-200 rounded">
-                    <div>
-                      <p className="font-medium text-gray-900">9 Ağu 2025</p>
-                      <div className="flex gap-4 text-gray-600">
-                        <span>🌡️ 21°C</span>
-                        <span>💨 47% nem</span>
-                      </div>
-                    </div>
-                    <ExternalLink className="w-4 h-4 text-gray-400" />
-                  </div>
+  // Activity items (visual spec data + sterilization scan events)
+  const activityItems = useMemo(() => {
+    const now = new Date();
+    const visual = [
+      {
+        ts: addMinutes(now, -1),
+        title: 'TRACEY LEE TAYLOR | Cerrahi isimli randevu güncellendi',
+        meta: {
+          doctor_from: 'Aslı Ataseven',
+          doctor_to: 'Mehmet Işlek',
+          date: '13.10.2025 09:00:00',
+          duration: '90dk',
+          type: 'Cerrahi',
+          status: 'Bekleniyor',
+          note: 'IMP ÜZERI AÇILIMI',
+          author: 'Aslı Ataseven',
+        },
+      },
+      {
+        ts: addMinutes(now, -2),
+        title: 'HAYLEY UNDERWOOD | Cerrahi isimli randevu güncellendi',
+        meta: {
+          doctor_from: 'Aslı Ataseven',
+          doctor_to: 'Mehmet Işlek',
+          date: '13.10.2025 08:30:00',
+          duration: '90dk',
+          type: 'Cerrahi',
+          status: 'Bekleniyor',
+          note: 'IMP ÜZERI AÇILIMI',
+          author: 'Aslı Ataseven',
+        },
+      },
+      {
+        ts: addMinutes(now, -3),
+        title: 'LEE GEORGE APPLEBY | Cerrahi isimli randevu güncellendi',
+        meta: {
+          doctor_from: 'Aslı Ataseven',
+          doctor_to: 'Mehmet Işlek',
+          date: '06.10.2025 11:00:00',
+          duration: '90dk',
+          type: 'Cerrahi',
+          status: 'Bekleniyor',
+          note: 'IMP ÜZERI AÇILIMI',
+          author: 'Aslı Ataseven',
+        },
+      },
+      {
+        ts: addMinutes(now, -4),
+        title: 'CHRISTINA ROBERTSON KENEY | Cerrahi isimli randevu güncellendi',
+        meta: {
+          doctor_from: 'Aslı Ataseven',
+          doctor_to: 'Mehmet Işlek',
+          date: '06.10.2025 09:00:00',
+          duration: '90dk',
+          type: 'Cerrahi',
+          status: 'Bekleniyor',
+          note: 'IMP ÜZERI AÇILIMI',
+          author: 'Aslı Ataseven',
+        },
+      },
+      {
+        ts: addMinutes(now, -5),
+        title: 'JACQUELINE ELIZABETH HELEN WOODHOUSE | Cerrahi isimli randevu güncellendi',
+        meta: {
+          doctor_from: 'Aslı Ataseven',
+          doctor_to: 'Mehmet Işlek',
+          date: '06.10.2025 09:00:00',
+          duration: '90dk',
+          type: 'Cerrahi',
+          status: 'Bekleniyor',
+          note: 'IMP ÜZERI AÇILIMI',
+          author: 'Aslı Ataseven',
+        },
+      },
+    ];
+    const scanDerived = (scanEvents || []).slice(-3).map((e) => ({
+      ts: new Date(e.ts),
+      text: `${e.event_type} — Kit ${e.kit_id} @ ${e.location}`,
+    }));
+    const merged = [...visual, ...scanDerived];
+    return merged.sort((a, b) => b.ts.getTime() - a.ts.getTime()).slice(0, 10);
+  }, [scanEvents]);
 
-                  <div className="flex items-center justify-between p-3 border border-gray-200 rounded">
-                    <div>
-                      <p className="font-medium text-gray-900">8 Ağu 2025</p>
-                      <div className="flex gap-4 text-gray-600">
-                        <span>🌡️ 22°C</span>
-                        <span>💨 44% nem</span>
-                      </div>
-                    </div>
-                    <ExternalLink className="w-4 h-4 text-gray-400" />
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 border border-gray-200 rounded">
-                    <div>
-                      <p className="font-medium text-gray-900">7 Ağu 2025</p>
-                      <div className="flex gap-4 text-gray-600">
-                        <span>🌡️ 23°C</span>
-                        <span>💨 46% nem</span>
-                      </div>
-                    </div>
-                    <ExternalLink className="w-4 h-4 text-gray-400" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Compliance Snapshot (SKS/JCI) */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">Uyumluluk Özeti</h3>
-                <ul className="text-sm text-gray-700 space-y-2 list-disc pl-5">
-                  <li>Hasta Güvenliği Hedefleri</li>
-                  <li>Sterilizasyon Kalite Göstergeleri</li>
-                  <li>Olay Bildirimleri</li>
-                  <li>Dokümantasyon ve Denetim</li>
-                  <li>Eğitim Uyumu</li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Right Column */}
-            <div className="col-span-12 lg:col-span-8 space-y-6">
-              {/* Overview Section */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Genel Bakış
-                  </h2>
-                  <button className="text-sm text-gray-500 hover:text-gray-700">
-                    Rapor indir
-                  </button>
-                </div>
-
-                {/* Surgery Stats */}
-                <div className="mb-8">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Scissors className="w-5 h-5 text-blue-600" />
-                    <h3 className="text-sm font-semibold text-gray-900">
-                      AMELİYATHANE
-                    </h3>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-6">
-                    Hasta güvenliği ve operasyonel verimlilik ile ortaklaşa
-                    çalışın
-                  </p>
-
-                  {/* Chart */}
-                  <div className="relative h-64 bg-gray-50 rounded-lg p-4">
-                    <div className="flex justify-between text-xs text-gray-500 mb-4">
-                      <span>0</span>
-                      <span>5</span>
-                      <span>10</span>
-                      <span>15</span>
-                      <span>20</span>
-                      <span>25</span>
-                      <span>30</span>
-                    </div>
-
-                    {/* Mock Chart Bars */}
-                    <div className="flex items-end justify-between h-40 gap-1">
-                      {Array.from({ length: 30 }, (_, i) => {
-                        const heights = [
-                          20, 35, 45, 25, 60, 40, 80, 30, 50, 70, 25, 40, 85,
-                          35, 45, 55, 30, 75, 40, 65, 50, 35, 90, 45, 55, 35,
-                          70, 40, 60, 45,
-                        ];
                         return (
-                          <div
-                            key={i}
-                            className="flex-1 flex flex-col items-center gap-1"
-                          >
-                            <div
-                              className="w-full bg-blue-200 rounded-sm"
-                              style={{ height: `${heights[i]}%` }}
-                            ></div>
-                            <div
-                              className="w-full bg-orange-200 rounded-sm"
-                              style={{ height: `${heights[i] * 0.6}%` }}
-                            ></div>
-                            <div
-                              className="w-full bg-purple-200 rounded-sm"
-                              style={{ height: `${heights[i] * 0.4}%` }}
-                            ></div>
-                          </div>
-                        );
-                      })}
+    <div className="grid grid-cols-12 gap-6">
+      {/* Top: Randevular */}
+      <div className="col-span-12">
+        <ScheduleCard
+          surgeryRooms={surgeryRooms}
+          surgeryEvents={surgeryEvents}
+          setSurgeryEvents={setSurgeryEvents}
+          sterileRooms={sterileRooms}
+          sterileEvents={sterileEvents}
+          setSterileEvents={setSterileEvents}
+        />
                     </div>
-
-                    {/* Stats Overlay */}
-                    <div className="absolute top-4 right-4 bg-gray-800 text-white p-3 rounded-lg text-sm">
-                      <div className="text-2xl font-bold">24</div>
-                      <div className="text-xs text-gray-300">
-                        Günlük Operasyon
-                      </div>
-                      <div className="mt-2">
-                        <div className="text-lg font-semibold">18</div>
-                        <div className="text-xs text-gray-300">
-                          Başarılı Operasyon
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <div className="text-lg font-semibold">6</div>
-                        <div className="text-xs text-gray-300">Planlanmış</div>
+      {/* Bottom: Left tasks, Right activity (equal height & alignment) */}
+      <div className="col-span-12 grid grid-cols-12 gap-6">
+        <div className="col-span-12 lg:col-span-6 flex">
+          <div className="flex-1">
+            <TaskList fixedHeight={BOTTOM_CARD_PX} />
                       </div>
                     </div>
-                  </div>
-
-                  {/* Legend */}
-                  <div className="flex gap-6 mt-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-blue-200 rounded"></div>
-                      <span className="text-gray-600">Günlük Operasyon</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-orange-200 rounded"></div>
-                      <span className="text-gray-600">Başarılı Operasyon</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-purple-200 rounded"></div>
-                      <span className="text-gray-600">Planlanmış</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Performance Section */}
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <BarChart3 className="w-5 h-5 text-blue-600" />
-                    <h3 className="text-sm font-semibold text-gray-900">
-                      PERFORMANS
-                    </h3>
-                  </div>
-
-                  <div className="flex justify-between items-center mb-4">
-                    <div></div>
-                    <div className="flex gap-4 text-sm">
-                      <span className="text-gray-500">
-                        Ortalama{" "}
-                        <span className="text-blue-600 font-semibold">
-                          87.5%
-                        </span>
-                      </span>
-                      <span className="text-gray-500">
-                        Verimlilik{" "}
-                        <span className="text-green-600 font-semibold">
-                          92.1%
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Performance Chart */}
-                  <div className="relative h-32 bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-end justify-between h-20 gap-1">
-                      {Array.from({ length: 50 }, (_, i) => {
-                        const heights = [
-                          75, 80, 85, 82, 90, 78, 88, 83, 87, 92, 79, 86, 94,
-                          88, 90, 85, 82, 89, 86, 91, 87, 83, 95, 89, 92, 86,
-                          88, 84, 90, 89, 85, 91, 87, 93, 86, 89, 92, 88, 94,
-                          87, 90, 86, 89, 85, 91, 88, 93, 87, 89, 90,
-                        ];
-                        return (
-                          <div
-                            key={i}
-                            className="flex-1 bg-blue-400 rounded-sm"
-                            style={{ height: `${heights[i]}%` }}
-                          ></div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Efficiency Tooltip */}
-                    <div className="absolute top-2 right-8 bg-gray-800 text-white p-2 rounded text-xs">
-                      <div>11 Ağustos 2025 - 22:38</div>
-                      <div>
-                        Verimlilik: <span className="text-blue-400">87.5%</span>
-                      </div>
-                    </div>
-
-                    {/* Time Labels */}
-                    <div className="flex justify-between text-xs text-gray-500 mt-2">
-                      <span>08:00</span>
-                      <span>12:00</span>
-                      <span>16:00</span>
-                      <span>20:00</span>
-                      <span>00:00</span>
-                      <span>04:00</span>
-                      <span>08:00</span>
-                    </div>
-                  </div>
-
-                  {/* Performance Scale */}
-                  <div className="flex justify-between text-xs text-gray-500 mt-2">
-                    <span>70%</span>
-                    <span>80%</span>
-                    <span>90%</span>
-                    <span>100%</span>
-                  </div>
+        <div className="col-span-12 lg:col-span-6 flex">
+          <div className="flex-1">
+            <ActivityFeed items={activityItems} fixedHeight={BOTTOM_CARD_PX} />
                 </div>
               </div>
             </div>
           </div>
-    </>
   );
 }
