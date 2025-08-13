@@ -4,6 +4,9 @@
 	"type": "module",
 	"scripts": {
 		"dev": "react-router dev",
+		"build": "react-router build",
+		"start": "react-router-serve build/server/index.js",
+		"db:apply-auth": "node ./scripts/apply-auth-schema.mjs",
 		"typecheck": "react-router typegen && tsc --noEmit",
 		"test": "vitest run"
 	},

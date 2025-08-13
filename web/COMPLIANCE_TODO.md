@@ -1,3 +1,13 @@
+### Deploy Hazırlık Kontrol Listesi
+
+- Build scriptleri: `build` ve `start` komutları eklenecek
+- SSR build: `__create/route-builder.ts` dosyasında prod’da dosya sistemi taramasını kaldır
+- Prerender: gerçek rotaları tek tek listele (wildcard kullanma)
+- Env değişkenleri: `DATABASE_URL`, `AUTH_SECRET`, `AUTH_URL`, `CORS_ORIGINS`, `NEXT_PUBLIC_*`
+- Sağlık kontrolleri ve base URL: `NEXT_PUBLIC_CREATE_BASE_URL` prod’da set edilmeli (gerekirse kaldır)
+- Testler: tüm vitest testleri yeşil
+- Tip kontrol: strict TS noEmit yeşil
+- Start: `react-router-serve` ile SSR servis ayağa kalkıyor
 # SKS/JCI Uyumlu İçerik Genişletme Planı
 
 Bu dosya, mevcut uygulamadaki tüm sayfaların SKS (Sağlıkta Kalite Standartları) ve JCI (Joint Commission International) gereksinimlerine uygun olacak şekilde içerik genişletme yol haritasını tanımlar. Genişletmeler mevcut davranışı değiştirmez; sadece görünür içerikleri ve göstergeleri artırır. Tüm eklemeler test-önce yaklaşımıyla yapılacaktır.

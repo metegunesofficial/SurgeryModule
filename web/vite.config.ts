@@ -19,14 +19,19 @@ export default defineConfig({
   optimizeDeps: {
     // Explicitly include fast-glob, since it gets dynamically imported and we
     // don't want that to cause a re-bundle.
-    include: ['fast-glob', 'lucide-react'],
-    exclude: [
-      '@hono/auth-js/react',
-      '@hono/auth-js',
-      '@auth/core',
-      '@hono/auth-js',
-      'hono/context-storage',
+    include: [
+      'fast-glob',
+      'lucide-react',
       '@auth/core/errors',
+      '@auth/core/jwt',
+      '@hono/auth-js',
+      '@hono/auth-js/react',
+    ],
+    exclude: [
+      '@auth/create/react',
+      '@auth/create',
+      '@auth/core',
+      'hono/context-storage',
       'fsevents',
       'lightningcss',
     ],
@@ -71,8 +76,9 @@ export default defineConfig({
       lodash: 'lodash-es',
       'npm:stripe': 'stripe',
       stripe: path.resolve(__dirname, './src/__create/stripe'),
-      // Workaround Vite package entry resolution for @auth/core root import
-      '@auth/core': path.resolve(__dirname, './node_modules/@auth/core/index.js'),
+        // Ensure subpath aliases resolve directly as files for dependency transforms
+        '@auth/core/errors': path.resolve(__dirname, './node_modules/@auth/core/errors.js'),
+        '@auth/core/jwt': path.resolve(__dirname, './node_modules/@auth/core/jwt.js'),
       '@auth/create/react': '@hono/auth-js/react',
       '@auth/create': path.resolve(__dirname, './src/__create/@auth/create'),
       '@': path.resolve(__dirname, 'src'),
