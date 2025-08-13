@@ -372,7 +372,7 @@ export function Layout({ children }: { children: ReactNode }) {
     }
   }, [pathname]);
   return (
-    <html lang="tr">
+      <html lang="tr">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -386,9 +386,9 @@ export function Layout({ children }: { children: ReactNode }) {
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-white focus:border focus:border-blue-500 focus:px-3 focus:py-2 focus:rounded">
           Ana içeriğe atla
         </a>
-        <div className="min-h-screen bg-gray-50 font-inter">
+        <div className="min-h-screen bg-gray-50 font-sans antialiased md:grid md:grid-cols-[16rem_minmax(0,1fr)]">
           <Sidebar />
-          <div className="md:ml-64">
+          <div className="md:col-start-2 flex min-h-screen flex-col">
             <Header />
             <main id="main-content" className="px-6 py-6">
               <div className="w-full max-w-7xl mx-auto">
@@ -403,7 +403,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <Toaster position="bottom-right" />
         <ScrollRestoration />
         <Scripts />
-        <script src="https://kit.fontawesome.com/2c15cc0cc7.js" crossOrigin="anonymous" async />
+        
       </body>
     </html>
   );
