@@ -372,7 +372,7 @@ export function Layout({ children }: { children: ReactNode }) {
     }
   }, [pathname]);
   return (
-    <html lang="en">
+    <html lang="tr">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -383,11 +383,14 @@ export function Layout({ children }: { children: ReactNode }) {
         <LoadFonts />
       </head>
       <body>
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-white focus:border focus:border-blue-500 focus:px-3 focus:py-2 focus:rounded">
+          Ana içeriğe atla
+        </a>
         <div className="min-h-screen bg-gray-50 font-inter">
           <Sidebar />
-          <div className="ml-64">
+          <div className="md:ml-64">
             <Header />
-            <main className="px-6 py-6">
+            <main id="main-content" className="px-6 py-6">
               <div className="w-full max-w-7xl mx-auto">
                 <ClientOnly loader={() => children} />
               </div>
