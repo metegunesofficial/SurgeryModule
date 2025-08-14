@@ -1,6 +1,14 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { Pool } from '@neondatabase/serverless';
+
+async function getPool(connectionString) {
+  if (/neon\.tech/.test(connectionString)) {
+    const { Pool } = await import('@neondatabase/serverless');
+    return new Pool({ connectionString });
+  }
+  const pg = await import('pg');
+  return new pg.Pool({ connectionString, ssl: { rejectUnauthorized: false } });
+}
 
 async function main() {
 	const connectionString = process.env.DATABASE_URL;
@@ -9,7 +17,7 @@ async function main() {
 		process.exit(1);
 	}
 
-	const pool = new Pool({ connectionString });
+	const pool = await getPool(connectionString);
 	const schemaPath = resolve(process.cwd(), 'db', 'auth_schema.sql');
 	const content = await readFile(schemaPath, 'utf8');
 	// naive split by semicolon followed by newline; safe for our simple schema

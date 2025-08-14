@@ -1,4 +1,7 @@
 import { useMemo, useRef, useState, useEffect } from "react";
+import { ScheduleCardShared, ScheduleModule } from "@/components/schedule/ScheduleCard.jsx";
+import TaskListCard from "@/components/dashboard/TaskListCard.jsx";
+import ActivityFeedCard from "@/components/dashboard/ActivityFeedCard.jsx";
 import { useSurgeryPlanningStore } from "@/stores/surgeryPlanning";
 import { useSterilizationStore } from "@/stores/sterilization";
 
@@ -378,6 +381,8 @@ function InteractiveSchedule({ rooms, events, onChange, startHour = 8, endHour =
   const gridRef = useRef(null);
   const [modal, setModal] = useState({ open: false, initial: null });
   const rowHeight = Math.max(28, Math.round(64 * scale));
+  const show30 = scale >= 1.05;
+  const show15 = scale >= 1.2;
   const leftColWidthPx = 64; // 4rem
 
   const openCreateAt = (clientX, clientY) => {
@@ -419,14 +424,24 @@ function InteractiveSchedule({ rooms, events, onChange, startHour = 8, endHour =
               <div key={h} className="relative text-[11px] text-gray-500" style={{ height: rowHeight }}>
                 <div className="absolute -top-2 right-1">{`${String(h).padStart(2, '0')}:00`}</div>
                 {idx < hours.length - 1 && <div className="absolute left-0 right-0 top-0 border-t border-dashed border-gray-200" />}
+                {show15 && <div className="absolute left-0 right-0 top-1/4 border-t border-gray-100" />}
+                {show30 && <div className="absolute left-0 right-0 top-1/2 border-t border-gray-100" />}
+                {show15 && <div className="absolute left-0 right-0 top-3/4 border-t border-gray-100" />}
+                {show15 && <div className="absolute right-1 -translate-y-1/2 top-1/4 text-[10px] text-gray-400">{`${String(h).padStart(2, '0')}:15`}</div>}
+                {show30 && <div className="absolute right-1 -translate-y-1/2 top-1/2 text-[10px] text-gray-400">{`${String(h).padStart(2, '0')}:30`}</div>}
+                {show15 && <div className="absolute right-1 -translate-y-1/2 top-3/4 text-[10px] text-gray-400">{`${String(h).padStart(2, '0')}:45`}</div>}
               </div>
             ))}
           </div>
-          {rooms.map((room) => (
-            <div key={room} className="relative border-l border-gray-100">
-              {hours.map((h) => (
-                <div key={h} className="border-t border-dashed border-gray-100" style={{ height: rowHeight }} />
-              ))}
+            {rooms.map((room) => (
+              <div key={room} className="relative border-l border-gray-100">
+                {hours.map((h) => (
+                  <div key={h} className="relative border-t border-dashed border-gray-100" style={{ height: rowHeight }}>
+                    {show15 && <div className="absolute left-0 right-0 top-1/4 border-t border-gray-100" />}
+                    {show30 && <div className="absolute left-0 right-0 top-1/2 border-t border-gray-100" />}
+                    {show15 && <div className="absolute left-0 right-0 top-3/4 border-t border-gray-100" />}
+                  </div>
+                ))}
               <div
                 className="absolute inset-0"
                 onClick={(e) => openCreateAt(e.clientX, e.clientY)}
@@ -625,7 +640,7 @@ function ScheduleCard({ surgeryRooms, surgeryEvents, setSurgeryEvents, sterileRo
   };
 
   return (
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
+    <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4">
       <h2 className="text-sm font-semibold text-gray-900 mb-4">Randevular</h2>
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
@@ -636,25 +651,22 @@ function ScheduleCard({ surgeryRooms, surgeryEvents, setSurgeryEvents, sterileRo
           <button className="px-2 py-1 text-sm border rounded" onClick={() => moveDate(-1)}>‹</button>
           <input type="date" className="border rounded px-2 py-1 text-sm" value={currentDate.toISOString().slice(0,10)} onChange={(e) => setCurrentDate(new Date(e.target.value))} />
           <button className="px-2 py-1 text-sm border rounded" onClick={() => moveDate(1)}>›</button>
-        </div>
-        <div className="flex items-center gap-2">
           {['day','week','month','agenda'].map((v) => (
             <button key={v} className={`px-3 py-1.5 text-xs rounded border ${view === v ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700'}`} onClick={() => setView(v)}>
               {v === 'day' ? 'Günlük' : v === 'week' ? 'Haftalık' : v === 'month' ? 'Aylık' : 'Ajanda'}
             </button>
           ))}
           {view === 'day' && (
-            <div className="ml-2 flex items-center gap-1">
-              <button className="px-2 py-1 text-xs border rounded" onClick={() => setScale((s) => Math.max(0.6, +(s - 0.1).toFixed(2)))}>-</button>
-              <input type="range" min="0.6" max="1.4" step="0.05" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} />
+            <div className="hidden sm:flex items-center gap-1">
+              <button className="px-2 py-1 text-xs border rounded" onClick={() => setScale((s) => Math.max(0.8, +(s - 0.1).toFixed(2)))}>-</button>
+              <input aria-label="Yakınlaştırma" type="range" min="0.8" max="1.4" step="0.05" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} />
               <button className="px-2 py-1 text-xs border rounded" onClick={() => setScale((s) => Math.min(1.4, +(s + 0.1).toFixed(2)))}>+</button>
             </div>
           )}
         </div>
       </div>
       {view === 'day' && (
-        <InteractiveSchedule rooms={rooms} events={filteredEvents} scale={scale} onChange={(next) => {
-          // merge into original events array by id
+        <ScheduleCardShared title="" rooms={rooms} events={filteredEvents} onEventsChange={(next) => {
           const nextIds = new Set(next.map((e) => e.id));
           const others = events.filter((e) => !nextIds.has(e.id));
           setEvents([...others, ...next]);
@@ -669,12 +681,11 @@ function ScheduleCard({ surgeryRooms, surgeryEvents, setSurgeryEvents, sterileRo
       {view === 'agenda' && (
         <AgendaList events={filteredEvents} onEvent={(e) => setModal({ open: true, initial: e })} />
       )}
-      <AppointmentModal open={modal.open} onClose={() => setModal({ open: false, initial: null })} onSave={saveFromModal} initial={modal.initial} rooms={rooms} />
     </div>
   );
 }
 
-const BOTTOM_CARD_PX = 360;
+const BOTTOM_CARD_PX = 540;
 
 function TaskList({ fixedHeight = BOTTOM_CARD_PX }) {
   const STORAGE_KEY_TASKS = 'dashboard_tasks';
@@ -716,10 +727,10 @@ function TaskList({ fixedHeight = BOTTOM_CARD_PX }) {
     });
   }, [tasks, filters]);
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4" style={{ height: fixedHeight }}>
+    <div className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col" style={{ height: 'clamp(300px, 60vh, 420px)' }}>
       <h2 className="text-sm font-semibold text-gray-900 mb-4">Görevler</h2>
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="grid grid-cols-12 gap-2 flex-1 mr-2">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="grid grid-cols-12 gap-2 flex-1 min-w-0 w-full sm:mr-2">
           <input className="col-span-12 lg:col-span-4 border rounded px-2 py-1 text-sm" placeholder="Tümü"
             value={filters.text}
             onChange={(e) => setFilters((f) => ({ ...f, text: e.target.value }))}
@@ -748,7 +759,7 @@ function TaskList({ fixedHeight = BOTTOM_CARD_PX }) {
             onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value }))}
           />
         </div>
-        <a href="/gorevler" className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Tümünü Gör</a>
+        <a href="/gorevler" className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 shrink-0">Tümünü Gör</a>
       </div>
       <div className="mb-3 flex items-center gap-2">
         <button
@@ -763,7 +774,7 @@ function TaskList({ fixedHeight = BOTTOM_CARD_PX }) {
           Yeni Görev
                   </button>
                 </div>
-      <ul className="space-y-3 overflow-y-auto pr-1" style={{ maxHeight: fixedHeight - 150 }}>
+      <ul className="space-y-3 overflow-y-auto pr-1 flex-1 min-h-0">
         {filteredTasks.map((task) => {
           const isEditing = editingId === task.id;
           return (
@@ -864,29 +875,68 @@ function TaskList({ fixedHeight = BOTTOM_CARD_PX }) {
 }
 
 function ActivityFeed({ items, fixedHeight = BOTTOM_CARD_PX }) {
+  const [filters, setFilters] = useState({ q: '', person: '', from: '', to: '', type: '' });
+  const people = useMemo(() => {
+    const set = new Set();
+    items.forEach((it) => {
+      if (it.meta?.doctor_from) set.add(it.meta.doctor_from);
+      if (it.meta?.doctor_to) set.add(it.meta.doctor_to);
+      if (it.meta?.author) set.add(it.meta.author);
+    });
+    return Array.from(set);
+  }, [items]);
+  const types = useMemo(() => {
+    const s = new Set();
+    items.forEach((it) => { if (it.meta?.type) s.add(it.meta.type); });
+    return Array.from(s);
+  }, [items]);
+  const filtered = useMemo(() => {
+    return items.filter((it) => {
+      const text = `${it.title || it.text || ''} ${it.meta ? Object.values(it.meta).join(' ') : ''}`.toLowerCase();
+      const qOk = !filters.q || text.includes(filters.q.toLowerCase());
+      const pOk = !filters.person || (it.meta && [it.meta.doctor_from, it.meta.doctor_to, it.meta.author].filter(Boolean).includes(filters.person));
+      const tOk = !filters.type || (it.meta && it.meta.type === filters.type);
+      const ts = it.ts instanceof Date ? it.ts : new Date(it.ts);
+      const fromOk = !filters.from || ts >= new Date(filters.from + 'T00:00:00');
+      const toOk = !filters.to || ts <= new Date(filters.to + 'T23:59:59');
+      return qOk && pOk && tOk && fromOk && toOk;
+    });
+  }, [items, filters]);
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4" style={{ height: fixedHeight }}>
+    <div className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col" style={{ height: 'clamp(300px, 60vh, 420px)' }}>
       <h2 className="text-sm font-semibold text-gray-900 mb-4">Genel Bakış (Aktivite Akışı)</h2>
-      <div className="mb-3 flex items-center justify-between">
-        <div className="grid grid-cols-12 gap-2 flex-1 mr-2">
-          <input className="col-span-12 lg:col-span-4 border rounded px-2 py-1 text-sm" placeholder="Tümü" />
-          <input className="col-span-6 lg:col-span-4 border rounded px-2 py-1 text-sm" placeholder="Kişi Seç" />
-          <input className="col-span-6 lg:col-span-4 border rounded px-2 py-1 text-sm" placeholder="Tarih Aralığı Seç" />
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="grid grid-cols-12 gap-2 flex-1 min-w-0 w-full sm:mr-2">
+          <select className="col-span-6 lg:col-span-3 border rounded px-2 py-1 text-sm" value={filters.type} onChange={(e) => setFilters((s) => ({ ...s, type: e.target.value }))}>
+            <option value="">İşlem Türü (Tümü)</option>
+            {types.map((t) => (<option key={t} value={t}>{t}</option>))}
+          </select>
+          <input className="col-span-12 lg:col-span-3 border rounded px-2 py-1 text-sm" placeholder="Tümü" value={filters.q} onChange={(e) => setFilters((s) => ({ ...s, q: e.target.value }))} />
+          <select className="col-span-6 lg:col-span-3 border rounded px-2 py-1 text-sm" value={filters.person} onChange={(e) => setFilters((s) => ({ ...s, person: e.target.value }))}>
+            <option value="">Kişi (Tümü)</option>
+            {people.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+          <div className="col-span-6 lg:col-span-3 grid grid-cols-2 gap-2">
+            <input type="date" className="border rounded px-2 py-1 text-sm" value={filters.from} onChange={(e) => setFilters((s) => ({ ...s, from: e.target.value }))} />
+            <input type="date" className="border rounded px-2 py-1 text-sm" value={filters.to} onChange={(e) => setFilters((s) => ({ ...s, to: e.target.value }))} />
+          </div>
         </div>
-        <a href="/aktivite" className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Tümünü Gör</a>
+        <a href="/aktivite" className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 shrink-0">Tümünü Gör</a>
       </div>
-      <ol className="relative border-l border-gray-200 ml-2 overflow-y-auto pr-1" style={{ maxHeight: fixedHeight - 120 }}>
-        {items.map((it, idx) => (
-          <li key={idx} className="mb-5 ml-4">
+      <ol className="relative border-l border-gray-200 ml-2 overflow-y-auto pr-1 flex-1 min-h-0">
+        {filtered.map((it, idx) => (
+          <li key={idx} className="mb-5 ml-4 break-words">
             <div className="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full bg-blue-500 border border-white" />
             <time className="block text-xs text-gray-500 mb-1">
               {it.ts.toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: undefined })}
             </time>
             {it.title ? (
                 <div>
-                <p className="text-sm font-medium text-gray-900">{it.title}</p>
+                <p className="text-sm font-medium text-gray-900 break-words">{it.title}</p>
                 {it.meta && (
-                  <div className="mt-1 text-xs text-gray-700 space-y-0.5">
+                  <div className="mt-1 text-xs text-gray-700 space-y-0.5 break-words">
                     <div>Doktor: {it.meta.doctor_from} → {it.meta.doctor_to}</div>
                     <div>Tarih: {it.meta.date}</div>
                     <div>Süre: {it.meta.duration}</div>
@@ -898,7 +948,7 @@ function ActivityFeed({ items, fixedHeight = BOTTOM_CARD_PX }) {
                 )}
                     </div>
             ) : (
-              <p className="text-sm text-gray-800">{it.text}</p>
+              <p className="text-sm text-gray-800 break-words">{it.text}</p>
             )}
           </li>
         ))}
@@ -1086,10 +1136,10 @@ export default function AtillaDentalDashboard() {
   }, [scanEvents]);
 
                         return (
-    <div className="grid grid-cols-12 gap-3 md:gap-4">
+    <div className="grid grid-cols-12 gap-0.5 md:gap-1 w-full">
       {/* Top: Randevular */}
       <div className="col-span-12">
-        <ScheduleCard
+        <ScheduleModule
           surgeryRooms={surgeryRooms}
           surgeryEvents={surgeryEvents}
           setSurgeryEvents={setSurgeryEvents}
@@ -1099,17 +1149,17 @@ export default function AtillaDentalDashboard() {
         />
                     </div>
       {/* Bottom: Left tasks, Right activity (equal height & alignment) */}
-      <div className="col-span-12 grid grid-cols-12 gap-6">
-        <div className="col-span-12 lg:col-span-6 flex">
+      <div className="col-span-12 grid grid-cols-12 gap-0.5 md:gap-1">
+        <div className="col-span-12 lg:col-span-6 flex min-w-0">
           <div className="flex-1">
-            <TaskList fixedHeight={BOTTOM_CARD_PX} />
-                      </div>
-                    </div>
-        <div className="col-span-12 lg:col-span-6 flex">
+            <TaskListCard fixedHeight={BOTTOM_CARD_PX} />
+          </div>
+        </div>
+        <div className="col-span-12 lg:col-span-6 flex min-w-0">
           <div className="flex-1">
-            <ActivityFeed items={activityItems} fixedHeight={BOTTOM_CARD_PX} />
-                </div>
-              </div>
+            <ActivityFeedCard items={activityItems} fixedHeight={BOTTOM_CARD_PX} showLink linkHref="/aktivite" />
+          </div>
+        </div>
             </div>
           </div>
   );

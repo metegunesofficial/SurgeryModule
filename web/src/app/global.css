@@ -10,10 +10,37 @@
 
   /* Global layout density variables */
   :root {
-    --app-container-max-width: none;
+    --app-container-max-width: 100%;
     --app-container-padding-x: 0.75rem; /* 12px */
     --app-container-padding-y: 0.75rem; /* 12px */
   }
 
   html { font-family: Manrope, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+}
+
+@layer components {
+  /* Responsive utilities for small screens */
+  .card-responsive {
+    @apply p-3 sm:p-4 rounded-lg border;
+  }
+  .grid-responsive {
+    @apply grid grid-cols-12 gap-2 md:gap-4 w-full;
+  }
+  .col-full-md-half {
+    @apply col-span-12 md:col-span-6;
+  }
+  .col-full-lg-third {
+    @apply col-span-12 lg:col-span-4;
+  }
+  .toolbar-responsive {
+    @apply flex flex-wrap items-center gap-2 min-w-0;
+  }
+  .input-sm {
+    @apply px-2 py-1 text-sm;
+  }
+}
+
+/* Handle narrow viewports: sidebar off-canvas by default, content full width */
+@media (max-width: 768px) {
+  .md\:block.md\:sticky.top-0.h-screen.w-64 { display: none !important; }
 }

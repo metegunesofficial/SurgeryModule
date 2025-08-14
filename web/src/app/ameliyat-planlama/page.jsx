@@ -39,7 +39,7 @@ function AmeliyatPlanlamaPage() {
           <div className="grid grid-cols-12 gap-6 lg:grid-cols-12 md:grid-cols-12 sm:grid-cols-1">
             <div className="col-span-12 lg:col-span-4 space-y-6">
             
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-semibold text-gray-900">Bugünün Programı</h3>
                   <span className="text-sm text-gray-500">11 Ağustos 2025</span>
@@ -81,7 +81,7 @@ function AmeliyatPlanlamaPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-6">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">Ameliyathane Durumu</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
@@ -120,7 +120,7 @@ function AmeliyatPlanlamaPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-6">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">Ameliyat Öncesi Kontrol</h3>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
@@ -147,7 +147,7 @@ function AmeliyatPlanlamaPage() {
               </div>
 
               {/* SKS/JCI: WHO Surgical Safety Checklist */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-6">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">Cerrahi Güvenlik Kontrol Listesi</h3>
                 <div className="grid grid-cols-3 gap-3 text-sm">
                   <div className="p-3 rounded border border-gray-200">
