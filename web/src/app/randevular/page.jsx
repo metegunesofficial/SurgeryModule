@@ -236,65 +236,60 @@ export default function RandevularPage() {
 
     return (
         <div className="space-y-4">
-            <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4">
-                <div className="flex items-center justify-between gap-2 mb-3">
-                    <h1 className="text-base font-semibold text-gray-900">Randevular</h1>
+            <div className="flex items-center justify-end mb-2">
+                <button aria-label="Randevu ayarlarını aç/kapat" className="h-8 px-3 text-xs border rounded" onClick={() => setSettingsOpen((v) => !v)}>
+                    {settingsOpen ? 'Ayarları Gizle' : 'Ayarları Göster'}
+                </button>
+            </div>
+            <div className="grid grid-cols-12 gap-3">
+                <div className={settingsOpen ? "col-span-12 lg:col-span-9" : "col-span-12"}>
+                    <ScheduleModule
+                        surgeryRooms={surgeryRooms}
+                        surgeryEvents={surgeryEvents}
+                        setSurgeryEvents={setSurgeryEvents}
+                        sterileRooms={sterileRooms}
+                        sterileEvents={sterileEvents}
+                        setSterileEvents={setSterileEvents}
+                        settings={settings}
+                        fixedHeight={720}
+                    />
                 </div>
-                <div className="flex items-center justify-between mb-2">
-                    <div />
-                    <button aria-label="Randevu ayarlarını aç/kapat" className="h-8 px-3 text-xs border rounded" onClick={() => setSettingsOpen((v) => !v)}>
-                        {settingsOpen ? 'Ayarları Gizle' : 'Ayarları Göster'}
-                    </button>
-                </div>
-                <div className="grid grid-cols-12 gap-3">
-                    <div className={settingsOpen ? "col-span-12 lg:col-span-9" : "col-span-12"}>
-                        <ScheduleModule
-                            surgeryRooms={surgeryRooms}
-                            surgeryEvents={surgeryEvents}
-                            setSurgeryEvents={setSurgeryEvents}
-                            sterileRooms={sterileRooms}
-                            sterileEvents={sterileEvents}
-                            setSterileEvents={setSterileEvents}
-                            settings={settings}
-                        />
-                    </div>
-                    {settingsOpen && (
-                    <div className="col-span-12 lg:col-span-3">
-                        <div className="sticky top-2 space-y-3 text-xs">
-                            <div className="rounded-lg border p-2">
+                {settingsOpen && (
+                <div className="col-span-12 lg:col-span-3">
+                    <div className="sticky top-2 space-y-3 text-xs">
+                        <div className="rounded-lg border p-2">
                                 <div className="flex items-center justify-between mb-1">
                                     <div className="font-medium">Yazı Boyutu</div>
                                     <div className="text-[11px] text-gray-500">{settings.fontSizePx}px</div>
                                 </div>
                                 <input className="w-full" type="range" min="10" max="20" step="1" value={settings.fontSizePx || 12} onChange={(e) => setSettings((s) => ({ ...s, fontSizePx: Number(e.target.value) }))} />
                             </div>
-                            <div className="rounded-lg border p-2">
+                        <div className="rounded-lg border p-2">
                                 <div className="flex items-center justify-between mb-1">
                                     <div className="font-medium">Yazı Kalınlığı</div>
                                     <div className="text-[11px] text-gray-500">{(settings.fontWeight||500) === 400 ? 'Normal' : (settings.fontWeight||500)}</div>
                                 </div>
                                 <input className="w-full" type="range" min="400" max="700" step="100" value={settings.fontWeight || 500} onChange={(e) => setSettings((s) => ({ ...s, fontWeight: Number(e.target.value) }))} />
                             </div>
-                            <div className="rounded-lg border p-2">
+                        <div className="rounded-lg border p-2">
                                 <div className="font-medium mb-1">Slot Süresi (yakalama dk)</div>
                                 <input className="w-full" type="range" min="5" max="30" step="5" value={settings.slotSnapMinutes || 10} onChange={(e) => setSettings((s) => ({ ...s, slotSnapMinutes: Number(e.target.value) }))} />
                             </div>
-                            <div className="rounded-lg border p-2">
+                        <div className="rounded-lg border p-2">
                                 <div className="font-medium mb-1">Gösterge Boyutu (şimdi çizgisi)</div>
                                 <input className="w-full" type="range" min="0" max="4" step="1" value={settings.indicatorSizePx || 2} onChange={(e) => setSettings((s) => ({ ...s, indicatorSizePx: Number(e.target.value) }))} />
                             </div>
-                            <div className="rounded-lg border p-2 flex items-center justify-between">
+                        <div className="rounded-lg border p-2 flex items-center justify-between">
                                 <div className="font-medium">Doktoru Göster</div>
                                 <label className="inline-flex items-center cursor-pointer">
                                     <input type="checkbox" className="sr-only peer" checked={!!settings.showDoctor} onChange={(e) => setSettings((s) => ({ ...s, showDoctor: e.target.checked }))} />
                                     <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:h-4 after:w-4 after:rounded-full after:transition-all peer-checked:after:translate-x-4" />
                                 </label>
                             </div>
-                            <button className="h-8 px-3 border rounded text-blue-600" onClick={() => setSettings({ fontSizePx: 12, fontWeight: 500, slotSnapMinutes: 10, indicatorSizePx: 2, showDoctor: false })}>Varsayılan'a Sıfırla</button>
-                        </div>
+                        <button className="h-8 px-3 border rounded text-blue-600" onClick={() => setSettings({ fontSizePx: 12, fontWeight: 500, slotSnapMinutes: 10, indicatorSizePx: 2, showDoctor: false })}>Varsayılan'a Sıfırla</button>
                     </div>
-                    )}
                 </div>
+                )}
             </div>
         </div>
     );

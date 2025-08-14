@@ -113,7 +113,14 @@ function DayCalendar({
     return <div>{content}</div>;
   }
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4">{content}</div>
+    <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="mb-4">
+        <h2 className="text-sm font-semibold text-gray-900">
+          <a href="/randevular" className="text-blue-600 hover:underline cursor-pointer">Randevular</a>
+        </h2>
+      </div>
+      {content}
+    </div>
   );
 }
 
@@ -1157,7 +1164,7 @@ export default function AtillaDentalDashboard() {
         </div>
         <div className="col-span-12 lg:col-span-6 flex min-w-0">
           <div className="flex-1">
-            <ActivityFeedCard items={activityItems} fixedHeight={BOTTOM_CARD_PX} showLink linkHref="/aktivite" />
+            <ActivityFeedCard items={activityItems} fixedHeight={BOTTOM_CARD_PX} />
           </div>
         </div>
             </div>

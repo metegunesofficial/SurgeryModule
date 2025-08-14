@@ -48,7 +48,9 @@ export default function TaskListCard({ fixedHeight = 360 }) {
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 flex flex-col" style={{ height: `clamp(320px, 65vh, ${fixedHeight}px)` }}>
-      <h2 className="text-sm font-semibold text-gray-900 mb-4">Görevler</h2>
+      <h2 className="text-sm font-semibold text-gray-900 mb-4">
+        <a href="/gorevler" className="text-blue-600 hover:underline cursor-pointer">Görevler</a>
+      </h2>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="grid grid-cols-12 gap-2 flex-1 min-w-0 w-full sm:mr-2">
           <input className="col-span-12 lg:col-span-4 border rounded px-2 py-1 text-sm" placeholder="Tümü" value={filters.text} onChange={(e) => setFilters((f) => ({ ...f, text: e.target.value }))} />
@@ -67,7 +69,6 @@ export default function TaskListCard({ fixedHeight = 360 }) {
           <input type="date" className="col-span-6 lg:col-span-1 border rounded px-2 py-1 text-sm" value={filters.to} onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value }))} />
         </div>
       </div>
-      <a href="/gorevler" className="self-end -mt-1 mb-2 px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Tümünü Gör</a>
       <div className="mb-3 flex items-center gap-2">
         <button className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700" onClick={() => {
           const nid = `t${Date.now()}`;

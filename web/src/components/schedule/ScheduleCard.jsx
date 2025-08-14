@@ -113,7 +113,7 @@ function AppointmentModal({ open, onClose, onSave, initial, rooms, saveLabel = '
   );
 }
 
-export function ScheduleCardShared({ title = 'Randevular', rooms, events, onEventsChange, scaleControls = true, scale, onScaleChange, settings = {}, date }) {
+export function ScheduleCardShared({ title = 'Randevular', rooms, events, onEventsChange, scaleControls = true, scale, onScaleChange, settings = {}, date, fixedHeight = 480 }) {
   const [localScale, setLocalScale] = useState(0.85);
   const effectiveScale = typeof scale === 'number' ? scale : localScale;
   const updateScale = (val) => {
@@ -281,8 +281,10 @@ export function ScheduleCardShared({ title = 'Randevular', rooms, events, onEven
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 flex flex-col" style={{ height: 'clamp(320px, 55vh, 480px)' }}>
-      <h2 className="text-sm font-semibold text-gray-900 mb-4">{title}</h2>
+    <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 flex flex-col" style={{ height: `clamp(320px, 55vh, ${fixedHeight}px)` }}>
+      {title ? (
+        <h2 className="text-sm font-semibold text-gray-900 mb-4">{title}</h2>
+      ) : null}
       {scaleControls && (
       <div className="mb-2 flex flex-wrap items-center gap-1 min-w-0">
           <button className="px-2 py-1 text-xs border rounded" onClick={() => updateScale(Math.max(0.8, +(effectiveScale - 0.1).toFixed(2)))}>-</button>
@@ -584,7 +586,7 @@ function MonthGrid({ date, events, onDayClick, onEvent }) {
   );
 }
 
-export function ScheduleModule({ surgeryRooms, surgeryEvents, setSurgeryEvents, sterileRooms, sterileEvents, setSterileEvents, settings }) {
+export function ScheduleModule({ surgeryRooms, surgeryEvents, setSurgeryEvents, sterileRooms, sterileEvents, setSterileEvents, settings, fixedHeight = 480 }) {
   const [tab, setTab] = useState('surgery');
   const [view, setView] = useState('day');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -631,7 +633,9 @@ export function ScheduleModule({ surgeryRooms, surgeryEvents, setSurgeryEvents, 
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4">
-      <h2 className="text-sm font-semibold text-gray-900 mb-4">Randevular</h2>
+      <h2 className="text-sm font-semibold text-gray-900 mb-4">
+        <a href="/randevular" className="text-blue-600 hover:underline cursor-pointer">Randevular</a>
+      </h2>
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
           <button className={`px-3 py-1.5 text-xs rounded border ${tab === 'surgery' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700'}`} onClick={() => setTab('surgery')}>Ameliyathane</button>
@@ -653,7 +657,7 @@ export function ScheduleModule({ surgeryRooms, surgeryEvents, setSurgeryEvents, 
         </div>
       </div>
       {view === 'day' && (
-        <ScheduleCardShared title="" rooms={rooms} events={filteredEvents} scaleControls={false} scale={scale} onScaleChange={setScale} settings={settings} date={currentDate} onEventsChange={(next) => {
+        <ScheduleCardShared title="" rooms={rooms} events={filteredEvents} scaleControls={false} scale={scale} onScaleChange={setScale} settings={settings} date={currentDate} fixedHeight={fixedHeight} onEventsChange={(next) => {
           const nextIds = new Set(next.map((e) => e.id));
           const others = events.filter((e) => !nextIds.has(e.id));
           setEvents([...others, ...next]);

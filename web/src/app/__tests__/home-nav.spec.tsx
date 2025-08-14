@@ -12,15 +12,15 @@ describe('Dashboard navigation cleanup', () => {
     expect(screen.queryByRole('link', { name: /Canlı İzleme/i })).toBeNull();
   });
 
-  it('renders links to Aktivite and Görevler through CTA buttons', () => {
+  it('renders links to Aktivite and Görevler through clickable headers', () => {
     render(
       <MemoryRouter>
         <AtillaDentalDashboard />
       </MemoryRouter>
     );
-    const links = screen.getAllByRole('link', { name: /Tümünü Gör/i });
-    expect(links.length).toBeGreaterThanOrEqual(2);
-    expect(links.some((a) => a.getAttribute('href') === '/aktivite')).toBe(true);
-    expect(links.some((a) => a.getAttribute('href') === '/gorevler')).toBe(true);
+    const act = screen.getByRole('link', { name: /Genel Bakış \(Aktivite Akışı\)/i });
+    const tasks = screen.getByRole('link', { name: /Görevler/i });
+    expect(act.getAttribute('href')).toBe('/aktivite');
+    expect(tasks.getAttribute('href')).toBe('/gorevler');
   });
 });

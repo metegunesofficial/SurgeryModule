@@ -1,7 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-export default function ActivityFeedCard({ items, fixedHeight = 360, showLink = false, linkHref = '/aktivite' }) {
+export default function ActivityFeedCard({ items, fixedHeight = 360, showLink = false, linkHref = '/aktivite', onLoadMore, hasMore = false }) {
   const [filters, setFilters] = useState({ q: '', person: '', from: '', to: '', type: '' });
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const listRef = useRef(null);
+  const lastLoadAtRef = useRef(0);
   const people = useMemo(() => {
     const set = new Set();
     items.forEach((it) => {
@@ -28,9 +31,36 @@ export default function ActivityFeedCard({ items, fixedHeight = 360, showLink = 
       return qOk && pOk && tOk && fromOk && toOk;
     });
   }, [items, filters]);
+
+  useEffect(() => {
+    if (!onLoadMore || !hasMore) return;
+    const el = listRef.current;
+    if (!el) return;
+    const threshold = 80;
+    const onScroll = () => {
+      if (!hasMore || isLoadingMore) return;
+      const now = Date.now();
+      if (now - lastLoadAtRef.current < 600) return; // simple cooldown to avoid spamming
+      const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - threshold;
+      if (nearBottom) {
+        lastLoadAtRef.current = now;
+        setIsLoadingMore(true);
+        const maybePromise = onLoadMore?.();
+        if (maybePromise && typeof maybePromise.then === 'function') {
+          maybePromise.finally(() => setIsLoadingMore(false));
+        } else {
+          setTimeout(() => setIsLoadingMore(false), 0);
+        }
+      }
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [onLoadMore, hasMore, isLoadingMore]);
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 flex flex-col" style={{ height: `clamp(320px, 65vh, ${fixedHeight}px)` }}>
-      <h2 className="text-sm font-semibold text-gray-900 mb-4">Genel Bakış (Aktivite Akışı)</h2>
+      <h2 className="text-sm font-semibold text-gray-900 mb-4">
+        <a href="/aktivite" className="text-blue-600 hover:underline cursor-pointer">Genel Bakış (Aktivite Akışı)</a>
+      </h2>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="grid grid-cols-12 gap-2 flex-1 min-w-0 w-full sm:mr-2">
           <select className="col-span-6 lg:col-span-3 border rounded px-2 py-1 text-sm" value={filters.type} onChange={(e) => setFilters((s) => ({ ...s, type: e.target.value }))}>
@@ -47,9 +77,9 @@ export default function ActivityFeedCard({ items, fixedHeight = 360, showLink = 
             <input type="date" className="border rounded px-2 py-1 text-sm" value={filters.to} onChange={(e) => setFilters((s) => ({ ...s, to: e.target.value }))} />
           </div>
         </div>
-        {showLink && <a href={linkHref} className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 shrink-0">Tümünü Gör</a>}
+        {/* removed explicit showLink button: header is now clickable */}
       </div>
-      <ol className="relative border-l border-gray-200 ml-2 overflow-y-auto pr-1 flex-1 min-h-0">
+      <ol ref={listRef} data-testid="activity-list" className="relative border-l border-gray-200 ml-2 overflow-y-auto pr-1 flex-1 min-h-0">
         {filtered.map((it, idx) => (
           <li key={idx} className="mb-5 ml-4 break-words">
             <div className="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full bg-blue-500 border border-white" />
@@ -74,6 +104,11 @@ export default function ActivityFeedCard({ items, fixedHeight = 360, showLink = 
             )}
           </li>
         ))}
+        {onLoadMore && (
+          <li className="mb-2 ml-4 text-xs text-gray-500">
+            {isLoadingMore ? 'Yükleniyor…' : hasMore ? 'Daha fazla yüklemek için aşağı kaydırın' : 'Tüm geçmiş yüklendi'}
+          </li>
+        )}
       </ol>
     </div>
   );
