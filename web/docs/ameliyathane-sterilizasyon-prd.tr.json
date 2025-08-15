@@ -58,6 +58,30 @@
             "Ağ geçidi/arayüz sunucusu",
             "Güvenli ağ segmenti (VLAN)"
           ]
+        },
+        {
+          "submodule_name": "Preference Card ve Case Cart",
+          "features": [
+            "Cerrah/prosedür bazlı preference card şablonları",
+            "Case cart hazırlık listeleri ve durum takibi",
+            "Eksik malzeme uyarıları ve alternatif önerileri"
+          ],
+          "equipment": [
+            "Barkod/RFID okuyucu",
+            "Etiket yazıcı"
+          ]
+        },
+        {
+          "submodule_name": "Çevresel İzleme ve KPI",
+          "features": [
+            "Oda sıcaklık/nem izleme ve alarm eşikleri",
+            "Kapı açılma sayısı takibi (opsiyonel sensör)",
+            "Turnover süresi, iptal/ertelenme oranı, blok doluluk KPI panosu"
+          ],
+          "equipment": [
+            "Çevresel sensörler (opsiyonel)",
+            "RTLS/kapı sensörü (opsiyonel)"
+          ]
         }
       ],
       "requirements": {
@@ -183,6 +207,18 @@
             "Raf sensörleri (opsiyonel)",
             "RFID geçit (opsiyonel)"
           ]
+        },
+        {
+          "submodule_name": "Loaner ve İmplant Yönetimi",
+          "features": [
+            "Vendor loaner tray kabul/teslim ve içerik doğrulama",
+            "İmplant UDI tarama ve izlenebilirlik",
+            "BI negatif öncesi implant yük serbest bırakmayı engelleme (implant hold)"
+          ],
+          "equipment": [
+            "Barkod/RFID okuyucu",
+            "UDI/GS1 destekli etiket yazıcı"
+          ]
         }
       ],
       "requirements": {
@@ -248,7 +284,8 @@
     "ISO 14644-1 (Temiz odalar – uygulanabilirse)",
     "IEC 62304 (Sağlık yazılımı yaşam döngüsü)",
     "ISO/IEC 27001 (Bilgi güvenliği yönetimi)",
-    "IEC 80001-1 (Tıbbi BT ağları risk yönetimi)"
+    "IEC 80001-1 (Tıbbi BT ağları risk yönetimi)",
+    "AAMI ST79 (Buhar sterilizasyonu ve steril işleme tesisleri için kapsamlı rehber)"
   ],
   "notes": "Alan tipleri ve zorunluluk dereceleri kurum politikaları ve yerel mevzuatla doğrulanmalıdır; e‑Nabız/MEDULA entegrasyonu kurumun yetkilerine bağlıdır."
 }

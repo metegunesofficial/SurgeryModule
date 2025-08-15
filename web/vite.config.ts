@@ -34,6 +34,7 @@ export default defineConfig({
       'lucide-react',
       '@auth/core/errors',
       '@auth/core/jwt',
+      '@auth/core/providers/credentials',
       '@hono/auth-js',
       '@hono/auth-js/react',
     ],
@@ -89,6 +90,10 @@ export default defineConfig({
         // Ensure subpath aliases resolve directly as files for dependency transforms
         '@auth/core/errors': path.resolve(__dirname, './node_modules/@auth/core/errors.js'),
         '@auth/core/jwt': path.resolve(__dirname, './node_modules/@auth/core/jwt.js'),
+        '@auth/core/providers/credentials': path.resolve(
+          __dirname,
+          './node_modules/@auth/core/providers/credentials.js'
+        ),
       '@auth/create/react': '@hono/auth-js/react',
       '@auth/create': path.resolve(__dirname, './src/__create/@auth/create'),
       '@': path.resolve(__dirname, 'src'),

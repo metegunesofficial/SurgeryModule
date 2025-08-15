@@ -48,3 +48,51 @@ Mevcut menü başlıklarının altındaki içerikleri, dünya standartlarında C
 4. Sonraki iterasyonda gerçek veri kaynağına entegrasyon için kancalar ekle ✅ (yer tutucu hook'lar eklendi: `useSurgeryModule`, `useSterilizationModule`)
 
 
+
+## Genişletme Yol Haritası (Eksik Özellikler)
+
+Ameliyathane (OR)
+- [ ] Preference Card ve Case Cart: `src/lib/or/preference-cards.ts` (tipler) + `src/stores/orPreference.ts` (store) + UI listesi
+- [ ] OR KPI: blok doluluk, iptal/ertelenme, turnover P95 — `src/stores/orKpi.ts` + dashboard kartları
+- [ ] Antibiyotik profilaksi zamanlayıcı: vaka başına uyarı ve kayıt (form + audit)
+- [ ] Sayım uzlaşma ve olay: spong/alet sayımı, mismatch engelleme, olay bildirimi bağı
+- [ ] Çevresel izleme: oda sıcaklık/nem ve kapı açılma sayacı (mock sensör sağlayıcı → adapter)
+- [ ] Anestezi trend import: mock seri/port arayüzünden veri çekme ve vaka ile bağlama
+- [ ] Turnover checklist: temizlik tamamlanmadan oda tahsisini engelleme kuralı
+
+Sterilizasyon (SPD)
+- [ ] Bowie‑Dick günlük test: form, saklama ve rapor; CI/BI ile yük onayı bağlama
+- [ ] Implant hold: BI negatif doğrulaması olmadan implant serbest bırakmayı engelleme
+- [ ] IFU takibi: set/prosedür bazlı program/parametre zorlama, ihlal uyarısı
+- [ ] Loaner tray yönetimi: giriş/çıkış, içerik doğrulama, SLA takibi
+- [ ] Set montaj talimatı: görsel adımlar, eksik parça ve yeniden işleme akışı
+- [ ] Cihaz bakım/kalibrasyon: sayaç, plan, uyarı; CMMS adapter arayüzü
+- [ ] Peel‑pack/tekil alet izleme: DataMatrix ile tekil izlenebilirlik ve batch tarama UI
+- [ ] Recall kapsam arama: lot/siklus/cihaz bazlı geriye izleme ekranı
+- [ ] Yük (load) onayı: parametrik kontrol + CI/BI eşleştirme + yetkili serbest bırakma imzası
+
+Güvenlik/Yetki
+- [ ] İnce taneli roller: OR Coordinator, SPD Lead, Infection Control; `src/lib/rbac.ts` genişletme
+- [ ] Audit dışa aktarma: AuditPanel'e JSON export + arşiv uç noktası (server route mock)
+
+Dayanıklılık/İşletme
+- [ ] Çevrimdışı kuyruk görünürlüğü (retry jobs UI) ve devre kesici metrikleri
+- [ ] Entegrasyon rate‑limit ve geri‑basınç ayarları (adapter bazlı)
+
+
+## Eczane / İlaç ve Stok Yönetimi (Teknik Yol Haritası)
+
+Tipler
+- [ ] `src/types/pharmacy.ts`: `Medication`, `MedicationLot`, `InventoryLocation`, `InventoryMovement`, `MedicationOrder`, `MedicationAdministration`
+
+Store ve İş Kuralları
+- [ ] `src/stores/pharmacy.ts`: envanter (FEFO), hareketler, eMAR akışı, kontrollü maddeler için çift imza/lot tüketim
+- [ ] `src/stores/pharmacy.test.ts`: FEFO seçimi, lot eksiye düşmeme, waste/return akış testleri
+
+UI
+- [ ] `src/app/eczane/` listeleri: stok kartları, düşük stok/son kullanma uyarıları
+- [ ] Hasta ekranı bağlantısı: yatış/taburcu sayfasında “İlaç Uygula” modalı ve barkod doğrulama (bileklik+ilaç)
+
+Entegrasyon
+- [ ] `src/lib/integrations/medication.ts`: FHIR `Medication`, `MedicationRequest`, `MedicationAdministration` map
+- [ ] MEDULA/SGK (opsiyonel): faturalama/geri ödeme alan şablonları

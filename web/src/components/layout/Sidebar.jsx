@@ -6,6 +6,7 @@ import {
   Heart,
   Scissors,
   TestTube,
+  Pill,
   X,
   CheckSquare,
   Calendar,
@@ -90,6 +91,16 @@ export function Sidebar() {
             <span>Randevular</span>
           </NavLink>
           <NavLink
+            to="/yatis"
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              `${baseLinkClass} ${isActive ? activeClass : inactiveClass}`
+            }
+          >
+            <CheckSquare className="w-4 h-4" />
+            <span>Yatış/Taburcu</span>
+          </NavLink>
+          <NavLink
             to="/bildirimler"
             onClick={onNavigate}
             className={({ isActive }) =>
@@ -155,6 +166,16 @@ export function Sidebar() {
           >
             <TestTube className="w-4 h-4" />
             <span>Döngü Yönetimi</span>
+          </NavLink>
+          <NavLink
+            to="/eczane"
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              `${baseLinkClass} ${isActive ? activeClass : inactiveClass}`
+            }
+          >
+            <Pill className="w-4 h-4" />
+            <span>Eczane</span>
           </NavLink>
         </div>
       </div>

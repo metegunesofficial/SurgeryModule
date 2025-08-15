@@ -14,6 +14,7 @@ export default {
 		'/randevular',
         '/personel',
         '/sterilizasyon',
+        '/eczane',
         '/uyum',
     ],
 } satisfies Config;
