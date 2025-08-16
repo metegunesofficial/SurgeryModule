@@ -34,6 +34,8 @@ Required env:
 
 - Apply auth schema (idempotent): `npm run db:apply-auth`
 - Run SQL migrations in `db/migrations`: `npm run db:migrate`
+- Seed development data (optional): `npm run db:seed`
+ - One-shot setup (auth + migrate + seed): `npm run db:setup`
 
 ## Local Development
 

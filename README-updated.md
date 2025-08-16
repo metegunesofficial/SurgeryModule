@@ -36,6 +36,9 @@ Zincir hastane grupları için dünya standartlarında, tüm kalite kriterlerini
 ```bash
 cd web
 npm ci
+npm run db:apply-auth
+npm run db:migrate
+npm run db:seed
 npm run dev
 ```
 

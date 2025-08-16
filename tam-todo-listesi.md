@@ -54,7 +54,7 @@
 - [ ] Sprint 1 görevlerini başlat
   - [ ] NextAuth.js konfigürasyonu tamamla
   - [ ] RBAC sistem kurulumu
-  - [ ] Database schema migration'ları yaz
+  - [x] Database schema migration'ları yaz
   - [ ] Core UI components geliştir
 - [ ] Her sprint sonunda demo hazırla
 - [ ] Sprint retrospektif toplantıları planla
@@ -119,7 +119,7 @@
 ## 🚨 KRİTİK ÖNCELIK SIRASI
 
 ### ⚡ HEMEN BAŞLA (Bu Hafta)
-1. **Database Schema & Models** - Core entities tamamla
+1. **Database Schema & Models** - Core entities tamamla (migration 0002_core_schema.sql eklendi)
 2. **Authentication System** - RBAC ile user management
 3. **Basic UI Components** - Design system + layout
 

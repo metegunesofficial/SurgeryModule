@@ -72,6 +72,8 @@
 2. **İlaç Yönetimi** - SKS.04, JCI.PCI.02
 3. **Sterilizasyon Takibi** - SKS.03, AAMI ST79
 
+Not: Sprint 1 kapsamında temel kimlik doğrulama, RBAC ve veri modelleri hazırlandı (migrations 0001_init_auth, 0002_core_schema). Uyum testleri için veri tohumlama script'i eklendi (`web/scripts/seed.mjs`).
+
 ### Yüksek (High)
 1. **Audit Trail System** - Tüm standartlar için
 2. **Risk Yönetimi** - ISO 14971

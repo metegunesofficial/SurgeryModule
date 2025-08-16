@@ -9,6 +9,8 @@
 		"start:e2e": "npm run build && npm start",
 		"db:apply-auth": "node ./scripts/apply-auth-schema.mjs",
 		"db:migrate": "node ./scripts/migrate.mjs",
+		"db:seed": "node ./scripts/seed.mjs",
+		"db:setup": "npm run db:apply-auth && npm run db:migrate && npm run db:seed",
 		"typecheck": "react-router typegen && tsc --noEmit",
 		"test": "vitest run",
 		"e2e": "playwright test"

@@ -167,7 +167,7 @@
    - [ ] Session management
 
 2. **Database Schema**
-   - [ ] Core entity models (User, Hospital, Department)
+   - [x] Core entity models (User, Hospital, Department)
    - [ ] Ameliyathane entities (OR, Surgery, Schedule)
    - [ ] Basic relationships
 
