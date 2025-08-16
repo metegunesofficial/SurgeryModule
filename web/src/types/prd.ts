@@ -72,6 +72,63 @@ export const MaterialUsageSchema = z.object({
 	udi: z.string().optional(),
 });
 
+// Pharmacy domain (basic scaffolding for medication and stock)
+export const MedicationSchema = z.object({
+	medication_id: z.string().uuid(),
+	code: z.string(),
+	name: z.string(),
+	atc_code: z.string().optional(),
+	is_controlled: z.boolean().default(false),
+});
+
+export const MedicationLotSchema = z.object({
+	lot_id: z.string().uuid(),
+	medication_id: z.string().uuid(),
+	lot_no: z.string(),
+	expiry_date: z.string(),
+	qty_on_hand: z.number().nonnegative(),
+	location_code: z.string(),
+});
+
+export const InventoryMovementSchema = z.object({
+	movement_id: z.string().uuid(),
+	medication_id: z.string().uuid(),
+	lot_id: z.string().uuid(),
+	from_location: z.string().optional(),
+	to_location: z.string().optional(),
+	qty: z.number(),
+	type: z.enum(['receive','issue','return','waste','transfer']),
+	reason: z.string().optional(),
+	ts: z.string(),
+	by_user: z.string().uuid(),
+});
+
+export const MedicationOrderSchema = z.object({
+	order_id: z.string().uuid(),
+	patient_id: z.string().uuid(),
+	medication_id: z.string().uuid(),
+	dose: z.string(),
+	route: z.string(),
+	frequency: z.string(),
+	prn: z.boolean().optional(),
+	start_time: z.string(),
+	end_time: z.string().optional(),
+	status: z.enum(['active','on_hold','stopped','completed']).default('active'),
+});
+
+export const MedicationAdministrationSchema = z.object({
+	admin_id: z.string().uuid(),
+	order_id: z.string().uuid(),
+	patient_id: z.string().uuid(),
+	lot_id: z.string().uuid().optional(),
+	dose_given: z.string(),
+	result: z.enum(['given','held','refused','wasted']),
+	reason: z.string().optional(),
+	administered_at: z.string(),
+	administered_by: z.string().uuid(),
+	cosigned_by: z.string().uuid().optional(),
+});
+
 export const IncidentSchema = z.object({
 	incident_id: z.string().uuid(),
 	type: z.string(),
@@ -169,6 +226,11 @@ export type ResponsibilityMatrix = z.infer<typeof ResponsibilityMatrixSchema>;
 export type KitVerification = z.infer<typeof KitVerificationSchema>;
 export type BlockPlan = z.infer<typeof BlockPlanSchema>;
 export type MaterialUsage = z.infer<typeof MaterialUsageSchema>;
+export type Medication = z.infer<typeof MedicationSchema>;
+export type MedicationLot = z.infer<typeof MedicationLotSchema>;
+export type InventoryMovement = z.infer<typeof InventoryMovementSchema>;
+export type MedicationOrder = z.infer<typeof MedicationOrderSchema>;
+export type MedicationAdministration = z.infer<typeof MedicationAdministrationSchema>;
 export type Incident = z.infer<typeof IncidentSchema>;
 export type AuditLog = z.infer<typeof AuditLogSchema>;
 export type SterilizationKit = z.infer<typeof SterilizationKitSchema>;
@@ -178,5 +240,99 @@ export type Label = z.infer<typeof LabelSchema>;
 export type ScanEvent = z.infer<typeof ScanEventSchema>;
 export type Indicator = z.infer<typeof IndicatorSchema>;
 export type Recall = z.infer<typeof RecallSchema>;
+
+// Inpatient (Admission) domain
+export const WardSchema = z.object({
+	ward_id: z.string().uuid(),
+	name: z.string(),
+});
+
+export const RoomSchema = z.object({
+	room_id: z.string().uuid(),
+	ward_id: z.string().uuid(),
+	name: z.string(),
+});
+
+export const BedSchema = z.object({
+	bed_id: z.string().uuid(),
+	room_id: z.string().uuid(),
+	ward_id: z.string().uuid(),
+	label: z.string(),
+	status: z.enum(['vacant','occupied','reserved','cleaning','maintenance']),
+});
+
+export const AdmissionSchema = z.object({
+	admission_id: z.string().uuid(),
+	patient_id: z.string().uuid(),
+	ward_id: z.string().uuid(),
+	room_id: z.string().uuid(),
+	bed_id: z.string().uuid(),
+	attending_physician_id: z.string().uuid(),
+	admit_time: z.string(),
+	diagnosis: z.string().optional(),
+	status: z.enum(['requested','admitted','transferred','discharged']).default('admitted'),
+});
+
+export const TransferEventSchema = z.object({
+	transfer_id: z.string().uuid(),
+	admission_id: z.string().uuid(),
+	from_ward_id: z.string().uuid(),
+	from_room_id: z.string().uuid(),
+	from_bed_id: z.string().uuid(),
+	to_ward_id: z.string().uuid(),
+	to_room_id: z.string().uuid(),
+	to_bed_id: z.string().uuid(),
+	reason: z.string().optional(),
+	ts: z.string(),
+});
+
+export const DischargeSchema = z.object({
+	discharge_id: z.string().uuid(),
+	admission_id: z.string().uuid(),
+	decision_time: z.string(),
+	discharge_time: z.string(),
+	summary: z.string().optional(),
+	signed_by: z.string().uuid(),
+});
+
+// Admission/Discharge Requests for approval workflow
+export const AdmissionRequestSchema = z.object({
+	request_id: z.string().uuid(),
+	patient_id: z.string().uuid(),
+	ward_id: z.string().uuid(),
+	room_id: z.string().uuid(),
+	bed_id: z.string().uuid(),
+	attending_physician_id: z.string().uuid(),
+	planned_start: z.string().optional(),
+	procedure_code: z.string().optional(),
+	anesthesia_required: z.boolean().optional(),
+	anesthesia_notes: z.string().optional(),
+	barcode: z.string().optional(),
+	reason: z.string().optional(),
+	created_by: z.string().uuid(),
+	created_at: z.string(),
+	status: z.enum(['pending','approved','rejected','expired']).default('pending'),
+});
+
+export const DischargeRequestSchema = z.object({
+	discharge_request_id: z.string().uuid(),
+	admission_id: z.string().uuid(),
+	summary: z.string().optional(),
+	reason: z.string().optional(),
+	signed_by_name: z.string().optional(),
+	signed_by_id: z.string().uuid().optional(),
+	created_by: z.string().uuid(),
+	created_at: z.string(),
+	status: z.enum(['pending','approved','rejected']).default('pending'),
+});
+
+export type Ward = z.infer<typeof WardSchema>;
+export type Room = z.infer<typeof RoomSchema>;
+export type Bed = z.infer<typeof BedSchema>;
+export type Admission = z.infer<typeof AdmissionSchema>;
+export type TransferEvent = z.infer<typeof TransferEventSchema>;
+export type Discharge = z.infer<typeof DischargeSchema>;
+export type AdmissionRequest = z.infer<typeof AdmissionRequestSchema>;
+export type DischargeRequest = z.infer<typeof DischargeRequestSchema>;
 
 

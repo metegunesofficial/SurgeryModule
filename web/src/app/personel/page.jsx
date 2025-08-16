@@ -92,8 +92,8 @@ export default function PersonelPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-8 space-y-6">
+      <div className="grid grid-cols-12 gap-4 w-full">
+        <div className="col-span-12 lg:col-span-8 space-y-4">
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -126,7 +126,7 @@ export default function PersonelPage() {
           </div>
         </div>
 
-        <div className="col-span-4 space-y-6">
+        <div className="col-span-12 lg:col-span-4 space-y-4">
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="flex items-center gap-2 mb-2">
               <h3 className="text-sm font-semibold text-gray-900">Eğitim Uygunluğu</h3>

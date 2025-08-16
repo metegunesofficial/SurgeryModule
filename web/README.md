@@ -6,6 +6,24 @@
 4) Build: `npm run build`
 5) Start: `npm run start`
 
+### Vercel Deployment (Node serverless)
+
+- Add the repo to Vercel (project root). Root `vercel.json` routes build to `web` folder.
+- Required env (Project Settings → Environment Variables):
+  - `DATABASE_URL` (Supabase Postgres URI)
+  - `AUTH_SECRET` (random 32+ chars)
+  - `AUTH_URL` (e.g. `https://<your-app>.vercel.app/api/auth`)
+  - `CORS_ORIGINS` (optional)
+- After first deploy, open Vercel Deployment Terminal and run:
+  - `node scripts/apply-auth-schema.mjs`
+  - `node scripts/migrate.mjs`
+
+### Supabase Setup
+
+1) Create Supabase project
+2) Copy Database → Connection Info → URI as `DATABASE_URL`
+3) Apply auth schema and migrations locally or on Vercel as above
+
 Required env:
 - `DATABASE_URL` (for Neon/Postgres)
 - `AUTH_SECRET` and `AUTH_URL` (if using auth routes)

@@ -55,9 +55,9 @@ function SterilizasyonPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-12 gap-6 lg:grid-cols-12 md:grid-cols-12 sm:grid-cols-1">
+          <div className="grid grid-cols-12 gap-4 w-full">
             {/* Left Column */}
-            <div className="col-span-12 lg:col-span-4 space-y-6">
+            <div className="col-span-12 lg:col-span-4 space-y-4">
               {/* Active Cycles */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">Aktif Döngüler</h3>
@@ -315,7 +315,7 @@ function SterilizasyonPage() {
             </div>
 
             {/* Right Column */}
-            <div className="col-span-12 lg:col-span-8 space-y-6">
+            <div className="col-span-12 lg:col-span-8 space-y-4">
               {/* Sterilization Process Overview */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-6">

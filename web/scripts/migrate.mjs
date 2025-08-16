@@ -1,6 +1,15 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { Pool } from '@neondatabase/serverless';
+
+async function getPool(connectionString) {
+  // Use Neon pool for Neon URLs, otherwise fall back to pg for Supabase/Generic Postgres
+  if (/neon\.tech/.test(connectionString)) {
+    const { Pool } = await import('@neondatabase/serverless');
+    return new Pool({ connectionString });
+  }
+  const pg = await import('pg');
+  return new pg.Pool({ connectionString, ssl: { rejectUnauthorized: false } });
+}
 
 async function ensureMigrationsTable(pool) {
   await pool.query(`
@@ -24,7 +33,7 @@ async function main() {
   }
 
   const migrationsDir = resolve(process.cwd(), 'db', 'migrations');
-  const pool = new Pool({ connectionString });
+  const pool = await getPool(connectionString);
   await ensureMigrationsTable(pool);
   const applied = await getApplied(pool);
 

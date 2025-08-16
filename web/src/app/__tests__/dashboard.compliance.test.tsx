@@ -19,6 +19,16 @@ describe('Dashboard sections', () => {
     expect(screen.queryByText(/Sterilizasyon Randevuları/i)).toBeNull();
     expect(screen.queryByText(/Oda Durumları/i)).toBeNull();
   });
+
+  it('ActivityFeedCard exposes list via test id', () => {
+    render(
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>
+    );
+    const list = screen.getByTestId('activity-list');
+    expect(list).toBeInTheDocument();
+  });
 });
 
 
