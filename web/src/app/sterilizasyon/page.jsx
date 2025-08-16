@@ -1,6 +1,7 @@
 import { CheckCircle, XCircle, Clock, QrCode, Pause, RotateCcw, Timer, Search, Zap, Thermometer, Play, Package } from "lucide-react";
 import { memo, useMemo, useState } from "react";
 import { generateMockDataMatrix } from "@/lib/sterilization/label";
+import RBACGuard from "@/components/RBACGuard.jsx";
 import { useSterilizationStore } from "@/stores/sterilization";
 
 function SterilizasyonPage() {
@@ -48,10 +49,12 @@ function SterilizasyonPage() {
                 <QrCode className="w-4 h-4" />
                 QR Kod Tara
               </button>
-              <button data-rbac-action="create:sterilization-cycle" className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700">
-                <Play className="w-4 h-4" />
-                Yeni Döngü Başlat
-              </button>
+              <RBACGuard action="create:sterilization-cycle">
+                <button className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                  <Play className="w-4 h-4" />
+                  Yeni Döngü Başlat
+                </button>
+              </RBACGuard>
             </div>
           </div>
 

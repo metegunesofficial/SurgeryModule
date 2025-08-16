@@ -258,9 +258,9 @@ export function useHmrConnection(): boolean {
     import.meta.hot.on('vite:beforeFullReload', onFullReload);
 
     return () => {
-      import.meta.hot?.off('vite:ws:disconnect', onDisconnect);
-      import.meta.hot?.off('vite:ws:connect', onConnect);
-      import.meta.hot?.off('vite:beforeFullReload', onFullReload);
+      import.meta.hot?.off?.('vite:ws:disconnect', onDisconnect);
+      import.meta.hot?.off?.('vite:ws:connect', onConnect);
+      import.meta.hot?.off?.('vite:beforeFullReload', onFullReload);
     };
   }, []);
 

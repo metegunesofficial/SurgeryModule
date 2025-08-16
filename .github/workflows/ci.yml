@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install deps
+        working-directory: web
+        run: npm ci --no-audit --no-fund
+      - name: Typecheck
+        working-directory: web
+        run: npm run typecheck
+      - name: Unit tests
+        working-directory: web
+        run: npm test -- --run
+      - name: Install Playwright
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+      - name: E2E tests
+        working-directory: web
+        run: npm run e2e -- --reporter=dot
+      - name: Build
+        working-directory: web
+        run: npm run build
+

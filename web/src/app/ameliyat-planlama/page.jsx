@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useSurgeryPlanningStore } from "@/stores/surgeryPlanning";
 import { MockNotificationProvider } from "@/lib/providers/notifications/mock";
 import { memo } from "react";
+import RBACGuard from "@/components/RBACGuard.jsx";
 
 function AmeliyatPlanlamaPage() {
   const addBlock = useSurgeryPlanningStore((s) => s.addBlock);
@@ -29,10 +30,12 @@ function AmeliyatPlanlamaPage() {
                 <Filter className="w-4 h-4" />
                 Filtrele
               </button>
-              <button data-rbac-action="create:surgery-schedule" className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700">
-                <Plus className="w-4 h-4" />
-                Yeni Ameliyat Planla
-              </button>
+              <RBACGuard action="create:surgery-schedule">
+                <button className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                  <Plus className="w-4 h-4" />
+                  Yeni Ameliyat Planla
+                </button>
+              </RBACGuard>
             </div>
           </div>
 
@@ -192,8 +195,8 @@ function AmeliyatPlanlamaPage() {
                     <span>Bugün çakışma bulunamadı</span>
                     <span className="text-xs text-blue-700">0 çakışma</span>
                   </div>
+                  <RBACGuard action="run:conflict-check">
                   <button
-                    data-rbac-action="run:conflict-check"
                     className="w-full h-9 px-3 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50"
                     onClick={() => {
                       addBlock({
@@ -208,6 +211,7 @@ function AmeliyatPlanlamaPage() {
                   >
                     Detaylı kontrol çalıştır
                   </button>
+                  </RBACGuard>
                 </div>
               </div>
 

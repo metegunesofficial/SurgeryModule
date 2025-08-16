@@ -19,6 +19,12 @@ async function exists(pool, query, params = []) {
 }
 
 async function seed() {
+  // Prevent accidental seeding in production unless explicitly allowed
+  if (process.env.NODE_ENV === 'production' && process.env.SEED_ALLOW_PROD !== 'true') {
+    console.error('Refusing to run seed in production. Set SEED_ALLOW_PROD=true to override.');
+    process.exit(1);
+  }
+
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString || connectionString.trim().length === 0) {
     console.error('DATABASE_URL is not set');
@@ -28,7 +34,7 @@ async function seed() {
   try {
     console.log('Seeding core domain data...');
 
-    // Hospital
+    // Hospital (LIVE)
     const hospitalId = '00000000-0000-0000-0000-000000000001';
     if (!(await exists(pool, 'select 1 from hospitals where id = $1', [hospitalId]))) {
       await upsert(
@@ -47,6 +53,23 @@ async function seed() {
         ]
       );
       console.log('✓ hospitals');
+    }
+
+    // Demo Clinic (DEMO)
+    const demoId = '00000000-0000-0000-0000-00000000DEMO';
+    if (!(await exists(pool, 'select 1 from hospitals where id = $1', [demoId]))) {
+      await upsert(
+        pool,
+        `insert into hospitals (id, name, slug, is_demo, is_active, settings)
+         values ($1, $2, $3, true, true, $4)` ,
+        [
+          demoId,
+          'Surgery Module Demo Klinik',
+          'demo',
+          { timezone: 'Europe/Istanbul', language: 'tr-TR', currency: 'TRY' },
+        ]
+      );
+      console.log('✓ hospitals (demo)');
     }
 
     // Department

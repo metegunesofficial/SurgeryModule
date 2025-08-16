@@ -21,6 +21,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@auth/create/react': '@hono/auth-js/react',
       '@auth/create': path.resolve(__dirname, './src/__create/@auth/create'),
+      'virtual:load-fonts.jsx': path.resolve(__dirname, './src/__create/virtual-load-fonts.jsx'),
     },
   },
   esbuild: {

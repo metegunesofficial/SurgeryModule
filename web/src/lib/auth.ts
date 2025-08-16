@@ -8,6 +8,19 @@ export function createAuthConfig(client: QueryableClient) {
     return initAuthConfig((c) => ({
         secret: c.env.AUTH_SECRET,
         session: { strategy: 'jwt' },
+        cookies: {
+            // Ensure secure cookies and SameSite=None in HTTPS environments for cross-site auth flows
+            // @auth/core reads this shape when using initAuthConfig
+            sessionToken: {
+                name: 'authjs.session-token',
+                options: {
+                    httpOnly: true,
+                    sameSite: c.env.AUTH_URL?.startsWith('https') ? 'none' : 'lax',
+                    secure: Boolean(c.env.AUTH_URL?.startsWith('https')),
+                    path: '/',
+                },
+            },
+        },
         pages: {
             signIn: '/account/signin',
             signOut: '/account/logout',

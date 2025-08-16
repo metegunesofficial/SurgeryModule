@@ -14,6 +14,7 @@ import {
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useLayoutStore } from "@/stores/layout";
 import { useEffect, useRef } from "react";
+import RBACGuard from "@/components/RBACGuard.jsx";
 
 export function Sidebar() {
   const { pathname } = useLocation();
@@ -90,16 +91,18 @@ export function Sidebar() {
             <Calendar className="w-4 h-4" />
             <span>Randevular</span>
           </NavLink>
-          <NavLink
-            to="/yatis"
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              `${baseLinkClass} ${isActive ? activeClass : inactiveClass}`
-            }
-          >
-            <CheckSquare className="w-4 h-4" />
-            <span>Yatış/Taburcu</span>
-          </NavLink>
+          <RBACGuard action="admission:create">
+            <NavLink
+              to="/yatis"
+              onClick={onNavigate}
+              className={({ isActive }) =>
+                `${baseLinkClass} ${isActive ? activeClass : inactiveClass}`
+              }
+            >
+              <CheckSquare className="w-4 h-4" />
+              <span>Yatış/Taburcu</span>
+            </NavLink>
+          </RBACGuard>
           <NavLink
             to="/bildirimler"
             onClick={onNavigate}
@@ -119,16 +122,18 @@ export function Sidebar() {
           AMELİYATHANE
         </p>
         <div className="space-y-1">
-          <NavLink
-            to="/ameliyat-planlama"
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              `${baseLinkClass} ${isActive ? activeClass : inactiveClass}`
-            }
-          >
-            <Scissors className="w-4 h-4" />
-            <span>Ameliyat Planlama</span>
-          </NavLink>
+          <RBACGuard action="create:surgery-schedule">
+            <NavLink
+              to="/ameliyat-planlama"
+              onClick={onNavigate}
+              className={({ isActive }) =>
+                `${baseLinkClass} ${isActive ? activeClass : inactiveClass}`
+              }
+            >
+              <Scissors className="w-4 h-4" />
+              <span>Ameliyat Planlama</span>
+            </NavLink>
+          </RBACGuard>
           <NavLink
             to="/canli-izleme"
             onClick={onNavigate}
@@ -157,16 +162,18 @@ export function Sidebar() {
           STERİLİZASYON
         </p>
         <div className="space-y-1">
-          <NavLink
-            to="/sterilizasyon"
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              `${baseLinkClass} ${isActive ? activeClass : inactiveClass}`
-            }
-          >
-            <TestTube className="w-4 h-4" />
-            <span>Döngü Yönetimi</span>
-          </NavLink>
+          <RBACGuard action="create:sterilization-cycle">
+            <NavLink
+              to="/sterilizasyon"
+              onClick={onNavigate}
+              className={({ isActive }) =>
+                `${baseLinkClass} ${isActive ? activeClass : inactiveClass}`
+              }
+            >
+              <TestTube className="w-4 h-4" />
+              <span>Döngü Yönetimi</span>
+            </NavLink>
+          </RBACGuard>
           <NavLink
             to="/eczane"
             onClick={onNavigate}
