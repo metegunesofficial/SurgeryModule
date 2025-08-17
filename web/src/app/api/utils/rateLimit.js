@@ -2,6 +2,7 @@
 // Not suitable for multi-instance prod without shared store; adequate for demo/tests
 
 const hits = new Map();
+let lastGlobalCleanupAt = 0;
 
 function getClientKey(request) {
   const headers = request.headers || request?.raw?.headers || new Headers();
@@ -21,6 +22,17 @@ export function createRateLimitedRoute(handler, { windowMs = 60_000, max = 100 }
   return async function rateLimitedHandler(request, ...rest) {
     const key = getClientKey(request);
     const now = Date.now();
+    // Opportunistic cleanup to bound memory without altering behavior
+    // Only runs occasionally and only removes entries whose window already expired
+    if (hits.size > 1024 && now - lastGlobalCleanupAt > windowMs) {
+      let scanned = 0;
+      for (const [clientKey, meta] of hits) {
+        if (meta.resetAt <= now) hits.delete(clientKey);
+        scanned += 1;
+        if (scanned >= 1024) break; // cap work per request
+      }
+      lastGlobalCleanupAt = now;
+    }
     const existing = hits.get(key);
     if (!existing || now > existing.resetAt) {
       hits.set(key, { count: 1, resetAt: now + windowMs });
