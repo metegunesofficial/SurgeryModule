@@ -5,9 +5,9 @@
 ---
 
 ## 1) Proje Temizlik ve Versiyonlama
-- [ ] Çalışma alanı temiz (git): `git status` → untracked/modified yok
-- [ ] Değişiklikler commit ve push edildi (main/deploy branch)
-- [ ] Versiyon ve değişiklik notu güncellendi (semver + değişiklik özeti)
+- [x] Çalışma alanı temiz (git): `git status` → untracked/modified yok
+- [x] Değişiklikler commit ve push edildi (main/deploy branch)
+- [x] Versiyon ve değişiklik notu güncellendi (semver + değişiklik özeti)
   - Kriter: Tag/Release oluşturuldu
   - Doğrulama: Git tag ve GitHub/Git provider release kaydı
 
@@ -19,7 +19,13 @@
   - `AUTH_SECRET`
   - `AUTH_URL` (ör: `https://<domain>/api/auth`)
   - `CORS_ORIGINS` (virgülle ayrılmış)
+  - `CREATE_TEMP_API_KEY` (opsiyonel; Create/Stripe köprüsü için)
   - `NEXT_PUBLIC_*` (gerekli olanlar)
+    - `NEXT_PUBLIC_PROJECT_GROUP_ID` (opsiyonel; Create entegrasyonu)
+    - `NEXT_PUBLIC_CREATE_BASE_URL` (opsiyonel; varsayılan `https://www.create.xyz`)
+    - `NEXT_PUBLIC_CREATE_API_BASE_URL` (opsiyonel; Stripe proxy uçları)
+    - `NEXT_PUBLIC_CREATE_HOST` (opsiyonel; hostname iletimi)
+    - `NEXT_PUBLIC_CREATE_ENV` (opsiyonel; `PRODUCTION` ise demo uyarıları gizlenir)
   - Kriter: Eksik env yok
   - Doğrulama: Vercel Project → Settings → Environment Variables
 
