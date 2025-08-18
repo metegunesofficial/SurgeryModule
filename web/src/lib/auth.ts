@@ -13,12 +13,7 @@ export function createAuthConfig(client: QueryableClient) {
             // @auth/core reads this shape when using initAuthConfig
             sessionToken: {
                 name: 'authjs.session-token',
-                options: {
-                    httpOnly: true,
-                    sameSite: c.env.AUTH_URL?.startsWith('https') ? 'none' : 'lax',
-                    secure: Boolean(c.env.AUTH_URL?.startsWith('https')),
-                    path: '/',
-                },
+                options: getSessionCookieOptions({ AUTH_URL: c.env.AUTH_URL, NODE_ENV: process.env.NODE_ENV }),
             },
         },
         pages: {
@@ -69,6 +64,17 @@ export function createAuthConfig(client: QueryableClient) {
             }),
         ],
     }));
+}
+
+export function getSessionCookieOptions(env: { AUTH_URL?: string; NODE_ENV?: string }) {
+    const isHttps = Boolean(env.AUTH_URL?.startsWith('https'));
+    const isProduction = env.NODE_ENV === 'production';
+    return {
+        httpOnly: true as const,
+        sameSite: isProduction || isHttps ? ('none' as const) : ('lax' as const),
+        secure: Boolean(isProduction || isHttps),
+        path: '/',
+    };
 }
 
 

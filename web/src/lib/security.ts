@@ -4,18 +4,20 @@ export const securityHeaders = (): MiddlewareHandler => (c, next) => {
     c.header('X-Content-Type-Options', 'nosniff');
     c.header('X-Frame-Options', 'DENY');
     c.header('Referrer-Policy', 'strict-origin-when-cross-origin');
-    c.header('Permissions-Policy', 'geolocation=(), microphone=()');
+    // Lock down powerful features by default; match vercel.json allowlist
+    c.header('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
     // Basic CSP that allows inline styles for styled-jsx; adjust as needed
     c.header(
         'Content-Security-Policy',
         [
             "default-src 'self'",
+            // Allow inline/eval scripts due to dev tooling; production hardening via vercel.json applies at edge
             "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
             "style-src 'self' 'unsafe-inline'",
-            'img-src * data:',
-            'connect-src *',
-            'font-src * data:',
-            'frame-ancestors none',
+            "img-src 'self' data: blob:",
+            "connect-src 'self' https: ws:",
+            "font-src 'self' data:",
+            "frame-ancestors 'none'",
         ].join('; ')
     );
     return next();

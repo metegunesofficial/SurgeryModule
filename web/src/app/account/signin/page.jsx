@@ -63,12 +63,15 @@ export default function SignInPage() {
           {loading ? "İşleniyor..." : mode === "signin" ? "Giriş Yap" : "Kayıt Ol"}
         </button>
       </form>
-      <div className="text-sm text-gray-600 mt-3">
+      <div className="text-sm text-gray-600 mt-3 space-y-2">
         {mode === "signin" ? (
           <button className="underline" onClick={() => setMode("signup")}>Hesabın yok mu? Kayıt ol</button>
         ) : (
           <button className="underline" onClick={() => setMode("signin")}>Zaten hesabın var mı? Giriş yap</button>
         )}
+        <div>
+          <a className="underline" href="/account/reset/request">Parolanı mı unuttun?</a>
+        </div>
       </div>
     </main>
   );
