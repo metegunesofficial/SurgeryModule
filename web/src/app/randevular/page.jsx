@@ -1,6 +1,7 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { ScheduleModule } from '@/components/schedule/ScheduleCard.jsx';
-import { ScheduleCardShared } from '@/components/schedule/ScheduleCard.jsx';
+import { useSurgeryPlanningStore } from '@/stores/surgeryPlanning';
+import { useSterilizationStore } from '@/stores/sterilization';
 
 function minutesSinceMidnight(d) {
 	return d.getHours() * 60 + d.getMinutes();
@@ -187,19 +188,71 @@ function AppointmentModal({ open, onClose, onSave, initial, rooms }) {
 }
 
 export default function RandevularPage() {
+    const { cases } = useSurgeryPlanningStore();
+    const { cycles, events: scanEvents } = useSterilizationStore();
     const today = new Date();
     const startOfDay = setTime(today, 8, 0);
-    const STORAGE_KEY = 'appointments_surgery_events';
-    const surgeryRooms = ['OR-1', 'OR-2', 'OR-3'];
-    const [surgeryEvents, setSurgeryEvents] = useState([
-        { id: 's1', room_id: 'OR-1', label: 'Diş çekimi (A01)', type: 'Diş çekimi', start: addMinutes(startOfDay, 15), end: addMinutes(startOfDay, 75), status: 'in_progress', doctor_from: 'Dr. Atilla', doctor_to: 'Aslı Ataseven' },
-        { id: 's2', room_id: 'OR-2', label: 'İmplant (B12)', type: 'İmplant', start: addMinutes(startOfDay, 90), end: addMinutes(startOfDay, 150), status: 'planned', doctor_from: 'Dr. Atilla', doctor_to: 'Mehmet Işlek' },
-        { id: 's3', room_id: 'OR-3', label: 'Dolgu (C07)', type: 'Dolgu', start: addMinutes(startOfDay, 180), end: addMinutes(startOfDay, 240), status: 'planned', doctor_from: 'Aslı Ataseven', doctor_to: 'Dr. Atilla' },
-    ]);
-    const [sterileRooms, setSterileRooms] = useState([]);
-    const [sterileEvents, setSterileEvents] = useState([]);
+    const STORAGE_KEY_SURGERY = 'dashboard_surgery_events';
+    const STORAGE_KEY_STERILE = 'dashboard_sterile_events';
+
+    // Use same data sources as dashboard
+    const fallbackSurgeryRooms = ["OR-1", "OR-2", "OR-3"];
+    const fallbackSurgeryEvents = useMemo(() => {
+        return [
+            { id: "s1", room_id: "OR-1", label: "Diş çekimi (A01)", type: 'Diş çekimi', start: addMinutes(startOfDay, 15), end: addMinutes(startOfDay, 75), status: "in_progress" },
+            { id: "s2", room_id: "OR-2", label: "İmplant (B12)", type: 'İmplant', start: addMinutes(startOfDay, 90), end: addMinutes(startOfDay, 150), status: "planned" },
+            { id: "s3", room_id: "OR-3", label: "Dolgu (C07)", type: 'Dolgu', start: addMinutes(startOfDay, 180), end: addMinutes(startOfDay, 240), status: "planned" },
+            { id: "s4", room_id: "OR-1", label: "Kanal tedavisi (D21)", type: 'Kanal tedavisi', start: addMinutes(startOfDay, 270), end: addMinutes(startOfDay, 360), status: "planned" },
+        ];
+    }, [startOfDay]);
+
+    const surgeryRooms = useMemo(() => {
+        const rooms = Array.from(new Set(cases.map((c) => c.room_id)));
+        return rooms.length ? rooms : fallbackSurgeryRooms;
+    }, [cases]);
+
+    const initialSurgeryEvents = useMemo(() => {
+        if (cases.length === 0) return fallbackSurgeryEvents;
+        return cases.map((c) => ({
+            id: c.case_id,
+            room_id: c.room_id,
+            label: `${c.procedure_code}`,
+            start: new Date(c.scheduled_start),
+            end: addMinutes(new Date(c.scheduled_start), c.estimated_duration_min),
+            status: c.status,
+        }));
+    }, [cases, fallbackSurgeryEvents]);
+
+    const [surgeryEvents, setSurgeryEvents] = useState(initialSurgeryEvents);
+
+    const fallbackSterileRooms = ["ST-1", "ST-2"];
+    const fallbackSterileEvents = useMemo(() => {
+        return [
+            { id: "c1", room_id: "ST-1", label: "B Buhar Döngüsü", start: addMinutes(startOfDay, 30), end: addMinutes(startOfDay, 120), status: "in_progress" },
+            { id: "c2", room_id: "ST-2", label: "Plazma Döngüsü", start: addMinutes(startOfDay, 150), end: addMinutes(startOfDay, 240), status: "planned" },
+        ];
+    }, [startOfDay]);
+
+    const sterileRooms = useMemo(() => {
+        const rooms = Array.from(new Set(cycles.map((cy) => cy.device_id)));
+        return rooms.length ? rooms : fallbackSterileRooms;
+    }, [cycles]);
+
+    const initialSterileEvents = useMemo(() => {
+        if (cycles.length === 0) return fallbackSterileEvents;
+        return cycles.map((cy) => ({
+            id: cy.cycle_id,
+            room_id: cy.device_id,
+            label: `${cy.type.toUpperCase()} (${cy.result.toUpperCase()})`,
+            start: new Date(cy.start_time),
+            end: new Date(cy.end_time),
+            status: cy.result === "pass" ? "completed" : "cancelled",
+        }));
+    }, [cycles, fallbackSterileEvents]);
+
+    const [sterileEvents, setSterileEvents] = useState(initialSterileEvents);
+
     const SETTINGS_KEY = 'appointments_settings_v1';
-    // Settings panel visibility: default hidden, no persistence
     const [settings, setSettings] = useState(() => {
         try {
             const raw = localStorage.getItem(SETTINGS_KEY);
@@ -209,25 +262,38 @@ export default function RandevularPage() {
     });
     const [settingsOpen, setSettingsOpen] = useState(false);
 
+    // Sync with dashboard data
     useEffect(() => {
         try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                const revived = Array.isArray(parsed)
-                    ? parsed.map((e) => ({ ...e, start: new Date(e.start), end: new Date(e.end) }))
-                    : [];
+            const rawS = localStorage.getItem(STORAGE_KEY_SURGERY);
+            if (rawS) {
+                const parsed = JSON.parse(rawS);
+                const revived = Array.isArray(parsed) ? parsed.map((e) => ({ ...e, start: new Date(e.start), end: new Date(e.end) })) : [];
                 if (revived.length) setSurgeryEvents(revived);
+            }
+            const rawT = localStorage.getItem(STORAGE_KEY_STERILE);
+            if (rawT) {
+                const parsed = JSON.parse(rawT);
+                const revived = Array.isArray(parsed) ? parsed.map((e) => ({ ...e, start: new Date(e.start), end: new Date(e.end) })) : [];
+                if (revived.length) setSterileEvents(revived);
             }
         } catch {}
     }, []);
 
+    // Persist changes to sync with dashboard
     useEffect(() => {
         try {
             const serializable = surgeryEvents.map((e) => ({ ...e, start: e.start.toISOString(), end: e.end.toISOString() }));
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(serializable));
+            localStorage.setItem(STORAGE_KEY_SURGERY, JSON.stringify(serializable));
         } catch {}
     }, [surgeryEvents]);
+
+    useEffect(() => {
+        try {
+            const serializable = sterileEvents.map((e) => ({ ...e, start: e.start.toISOString(), end: e.end.toISOString() }));
+            localStorage.setItem(STORAGE_KEY_STERILE, JSON.stringify(serializable));
+        } catch {}
+    }, [sterileEvents]);
 
     useEffect(() => {
         try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch {}

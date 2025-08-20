@@ -20,9 +20,9 @@ export function Sidebar() {
   const { pathname } = useLocation();
   const isActive = (path) => pathname === path;
   const baseLinkClass =
-    "flex items-center gap-3 px-3 py-2 text-sm rounded-md hover:bg-gray-50";
+    "flex items-center gap-3 px-3 py-2 text-sm rounded-md hover:bg-slate-50";
   const activeClass = "text-blue-600 bg-blue-50";
-  const inactiveClass = "text-gray-600";
+  const inactiveClass = "text-slate-600";
   const isSidebarOpen = useLayoutStore((s) => s.isSidebarOpen);
   const closeSidebar = useLayoutStore((s) => s.closeSidebar);
   const drawerRef = useRef(null);
@@ -47,7 +47,7 @@ export function Sidebar() {
   const Nav = ({ onNavigate }) => (
     <nav className="px-4 py-4" role="navigation" aria-label="Birincil">
       <div className="mb-6">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
           GENEL
         </p>
         <div className="space-y-1">
@@ -112,13 +112,13 @@ export function Sidebar() {
           >
             <Mail className="w-4 h-4" />
             <span>Bildirimler</span>
-            <span className="ml-auto bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full">7</span>
+            <span className="ml-auto bg-slate-200 text-slate-700 text-xs px-2 py-1 rounded-full">7</span>
           </NavLink>
         </div>
       </div>
 
       <div className="mb-6">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
           AMELİYATHANE
         </p>
         <div className="space-y-1">
@@ -158,7 +158,7 @@ export function Sidebar() {
       </div>
 
       <div className="mb-6">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
           STERİLİZASYON
         </p>
         <div className="space-y-1">
@@ -194,13 +194,13 @@ export function Sidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:block md:sticky top-0 h-screen w-64 bg-white border-r border-gray-200 z-30" aria-label="Ana menü">
+      <aside className="hidden md:block md:sticky top-0 h-screen w-64 bg-white border-r border-slate-200 z-30" aria-label="Ana menü">
         {/* Logo */}
-        <div className="flex items-center gap-3 h-16 px-6 border-b border-gray-200">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+        <div className="flex items-center gap-3 h-16 px-6 border-b border-slate-200">
+          <div className="w-8 h-8 bg-slate-600 rounded-lg flex items-center justify-center">
             <Heart className="w-4 h-4 text-white" />
           </div>
-          <h1 className="text-xl font-semibold text-gray-900">Atilla Dental</h1>
+          <h1 className="text-xl font-semibold text-slate-900">Atilla Dental</h1>
         </div>
         <Nav onNavigate={undefined} />
       </aside>
@@ -214,26 +214,26 @@ export function Sidebar() {
             onClick={closeSidebar}
           />
           <aside
-            className="fixed left-0 top-0 h-full w-72 bg-white border-r border-gray-200 z-50 shadow-xl"
+            className="fixed left-0 top-0 h-full w-72 bg-white border-r border-slate-200 z-50 shadow-xl"
             role="dialog"
             aria-modal="true"
             aria-label="Ana menü"
             tabIndex={-1}
             ref={drawerRef}
           >
-            <div className="flex items-center justify-between gap-3 h-16 px-4 border-b border-gray-200">
+            <div className="flex items-center justify-between gap-3 h-16 px-4 border-b border-slate-200">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-slate-600 rounded-lg flex items-center justify-center">
                   <Heart className="w-4 h-4 text-white" />
                 </div>
-                <h1 className="text-lg font-semibold text-gray-900">Atilla Dental</h1>
+                <h1 className="text-lg font-semibold text-slate-900">Atilla Dental</h1>
               </div>
               <button
                 aria-label="Menüyü kapat"
-                className="p-2 rounded-md hover:bg-gray-50"
+                className="p-2 rounded-md hover:bg-slate-50"
                 onClick={closeSidebar}
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5 text-slate-500" />
               </button>
             </div>
             <Nav onNavigate={closeSidebar} />

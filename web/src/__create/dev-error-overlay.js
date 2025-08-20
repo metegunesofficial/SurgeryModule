@@ -68,7 +68,7 @@
               <div
                 class="w-8 h-8 bg-[#F2F2F2] rounded-full flex
                        items-center justify-center">
-                <span class="text-black text-[1.125rem] leading-none">⚠</span>
+                <span class="text-black text-[1.125rem] leading-none font-bold">!</span>
               </div>
             </div>
 

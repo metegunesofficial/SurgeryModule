@@ -27,17 +27,17 @@ export function Header() {
   }, []);
 
   return (
-    <header className="bg-white border-b border-gray-200 h-16 px-6 sticky top-0 z-40">
+    <header className="bg-white border-b border-slate-200 h-16 px-6 sticky top-0 z-40">
       <div className="h-full flex items-center justify-between">
         <div className="h-10 flex items-center">
           {/* Mobile hamburger */}
           <button
             type="button"
             aria-label="Menüyü aç"
-            className="md:hidden inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="md:hidden inline-flex items-center justify-center p-2 rounded-md hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500"
             onClick={useLayoutStore((s) => s.openSidebar)}
           >
-            <Menu className="w-5 h-5 text-gray-700" />
+            <Menu className="w-5 h-5 text-slate-700" />
           </button>
         </div>
 
@@ -48,7 +48,7 @@ export function Header() {
             aria-haspopup="menu"
             aria-expanded={open ? "true" : "false"}
             onClick={() => setOpen((v) => !v)}
-            className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500"
           >
             <img
               src="https://images.pexels.com/photos/5452201/pexels-photo-5452201.jpeg?auto=compress&cs=tinysrgb&w=40&h=40&dpr=1"
@@ -56,10 +56,10 @@ export function Header() {
               className="w-8 h-8 rounded-full object-cover"
             />
             <div className="text-left">
-              <p className="text-gray-900 font-medium leading-tight">Dr. Atilla</p>
-              <p className="text-gray-500 text-xs leading-tight">atilla@altaydental.com</p>
+              <p className="text-slate-900 font-medium leading-tight">Dr. Atilla</p>
+              <p className="text-slate-500 text-xs leading-tight">atilla@altaydental.com</p>
             </div>
-            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${open ? "rotate-180" : "rotate-0"}`} />
+            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${open ? "rotate-180" : "rotate-0"}`} />
           </button>
         </div>
       </div>
@@ -70,12 +70,12 @@ export function Header() {
           id="user-menu"
           role="menu"
           aria-labelledby="user-menu-button"
-          className="absolute right-6 top-14 z-50 w-56 rounded-md border border-gray-200 bg-white shadow-lg py-2"
+          className="absolute right-6 top-14 z-50 w-56 rounded-md border border-slate-200 bg-white shadow-lg py-2"
         >
           <Link
             to="/account"
             role="menuitem"
-            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
             onClick={() => setOpen(false)}
           >
             <User className="w-4 h-4" /> Profilim
@@ -83,7 +83,7 @@ export function Header() {
           <Link
             to="/ayarlar"
             role="menuitem"
-            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
             onClick={() => setOpen(false)}
           >
             <Settings className="w-4 h-4" /> Ayarlar

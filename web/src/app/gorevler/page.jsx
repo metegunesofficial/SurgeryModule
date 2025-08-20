@@ -8,34 +8,26 @@ const mockUsers = [
 ];
 
 export default function GorevlerPage() {
-	// Boş veri ile başlat (ekran görüntüsü ile uyumlu)
-	const [tasks] = useState([]);
-	const [tab, setTab] = useState('active');
-	const [advancedOpen, setAdvancedOpen] = useState(false);
-	const [filters, setFilters] = useState({
-		q: '',
-		createdFrom: '',
-		createdTo: '',
-		endFrom: '',
-		endTo: '',
-		patient: '',
-		person: '',
-		onlyActiveStaff: false,
-		sort: 'updatedAt',
-	});
-
-	const filtered = useMemo(() => {
-		// Şimdilik yalnızca boş data için basit döndürme; ileri filtre mantığı gerektiğinde eklenebilir
-		return tasks;
-	}, [tasks, filters, tab]);
+	// Note: TaskListCard already uses shared localStorage with dashboard
+	// No additional state management needed - data is synchronized automatically
 
 	return (
-		<div className="space-y-4">
-			<div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4">
-				<div className="flex items-center justify-between mb-3">
-					<h1 className="text-base font-semibold text-gray-900">Görevler</h1>
+		<div className="min-h-screen bg-slate-50">
+			<div className="grid grid-cols-12 gap-6 md:gap-8 w-full max-w-7xl mx-auto p-6">
+				{/* Header */}
+				<div className="col-span-12">
+					<div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+						<h1 className="text-2xl font-bold text-slate-900 mb-2">Görevler</h1>
+						<p className="text-slate-600">Tüm görevleri yönetin ve takip edin</p>
+					</div>
 				</div>
-				<TaskListCard fixedHeight={420} />
+
+				{/* Main Content */}
+				<div className="col-span-12">
+					<div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+						<TaskListCard fixedHeight={600} />
+					</div>
+				</div>
 			</div>
 		</div>
 	);

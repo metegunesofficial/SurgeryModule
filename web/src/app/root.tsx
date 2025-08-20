@@ -63,7 +63,7 @@ function SharedErrorBoundary({
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
             <div className="w-8 h-8 bg-[#F2F2F2] rounded-full flex items-center justify-center">
-              <span className="text-black text-[1.125rem] leading-none">⚠</span>
+              <span className="text-black text-[1.125rem] leading-none font-bold">!</span>
             </div>
           </div>
 

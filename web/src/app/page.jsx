@@ -1,9 +1,11 @@
 import { useMemo, useRef, useState, useEffect } from "react";
-import { ScheduleCardShared, ScheduleModule } from "@/components/schedule/ScheduleCard.jsx";
+import { ScheduleCardShared } from "@/components/schedule/ScheduleCard.jsx";
 import TaskListCard from "@/components/dashboard/TaskListCard.jsx";
 import ActivityFeedCard from "@/components/dashboard/ActivityFeedCard.jsx";
-import { useSurgeryPlanningStore } from "@/stores/surgeryPlanning";
 import { useSterilizationStore } from "@/stores/sterilization";
+import { TestStoreComponent } from "@/components/test-store";
+import { useSurgeryPlanning } from "@/hooks/useSurgeryPlanning";
+import { Calendar, Activity, CheckSquare } from "lucide-react";
 
 function minutesSinceMidnight(d) {
   return d.getHours() * 60 + d.getMinutes();
@@ -68,20 +70,20 @@ function DayCalendar({
                       const top = (startMin / totalMinutes) * 100;
                       const height = Math.max(18, ((endMin - startMin) / totalMinutes) * 100);
                       const typeColor = {
-                        'Diş çekimi': 'bg-rose-100 border-rose-200 text-rose-800',
-                        'Kanal tedavisi': 'bg-indigo-100 border-indigo-200 text-indigo-800',
-                        'Dolgu': 'bg-amber-100 border-amber-200 text-amber-800',
-                        'İmplant': 'bg-emerald-100 border-emerald-200 text-emerald-800',
-                        'Kontrol': 'bg-sky-100 border-sky-200 text-sky-800',
+                        'Diş çekimi': 'bg-slate-100 border-slate-200 text-slate-800',
+                        'Kanal tedavisi': 'bg-slate-100 border-slate-200 text-slate-800',
+                        'Dolgu': 'bg-slate-100 border-slate-200 text-slate-800',
+                        'İmplant': 'bg-slate-100 border-slate-200 text-slate-800',
+                        'Kontrol': 'bg-slate-100 border-slate-200 text-slate-800',
                       }[e.type];
                       const color = typeColor ?? (
                         e.status === "in_progress"
-                          ? "bg-blue-100 border-blue-200 text-blue-800"
+                          ? "bg-blue-50 border-blue-200 text-blue-800"
                           : e.status === "completed"
-                          ? "bg-emerald-100 border-emerald-200 text-emerald-800"
+                          ? "bg-green-50 border-green-200 text-green-800"
                           : e.status === "cancelled"
-                          ? "bg-red-100 border-red-200 text-red-800"
-                          : "bg-amber-100 border-amber-200 text-amber-800"
+                          ? "bg-red-50 border-red-200 text-red-800"
+                          : "bg-slate-100 border-slate-200 text-slate-800"
                       );
                       return (
                         <div
@@ -113,9 +115,9 @@ function DayCalendar({
     return <div>{content}</div>;
   }
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4">
+    <div className="bg-white rounded-lg border border-slate-200 p-4">
       <div className="mb-4">
-        <h2 className="text-sm font-semibold text-gray-900">
+        <h2 className="text-sm font-semibold text-slate-900">
           <a href="/randevular" className="text-blue-600 hover:underline cursor-pointer">Randevular</a>
         </h2>
       </div>
@@ -138,23 +140,23 @@ function UserBadge({ userId }) {
     .join('') || '?';
   return (
                 <div className="flex items-center gap-2">
-      <div className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
+      <div className="w-6 h-6 rounded-full bg-slate-600 text-white text-xs flex items-center justify-center">
         {initials}
                 </div>
-      <span className="text-xs text-gray-700">{u?.name || 'Atanmadı'}</span>
+      <span className="text-xs text-slate-700">{u?.name || 'Atanmadı'}</span>
               </div>
   );
 }
 
 function UrgencyChip({ level }) {
   const styles = {
-    Düşük: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    Düşük: 'bg-green-50 text-green-700 border-green-200',
     Orta: 'bg-amber-50 text-amber-700 border-amber-200',
     Yüksek: 'bg-orange-50 text-orange-700 border-orange-200',
     Kritik: 'bg-red-50 text-red-700 border-red-200',
   };
   return (
-    <span className={`text-[10px] border rounded px-2 py-0.5 ${styles[level] || 'bg-gray-50 text-gray-700 border-gray-200'}`}>
+    <span className={`text-[10px] border rounded px-2 py-0.5 ${styles[level] || 'bg-slate-50 text-slate-700 border-slate-200'}`}>
       {level || 'Belirsiz'}
     </span>
   );
@@ -265,9 +267,9 @@ function AppointmentModal({ open, onClose, onSave, initial, rooms }) {
   if (!open || !form) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className={`w-[680px] bg-white rounded-lg border border-gray-200 shadow-xl transform transition-[opacity,transform,box-shadow] duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] select-text ${animateIn ? 'opacity-100 scale-100 translate-y-0 shadow-2xl' : 'opacity-0 scale-95 translate-y-2 shadow-md'}`}>
-        <div className="px-4 py-3 border-b">
-          <h3 className="text-sm font-semibold text-gray-900">Randevu Oluştur / Düzenle</h3>
+      <div className={`w-[680px] bg-white rounded-lg border border-slate-200 shadow-xl transform transition-[opacity,transform,box-shadow] duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] select-text ${animateIn ? 'opacity-100 scale-100 translate-y-0 shadow-2xl' : 'opacity-0 scale-95 translate-y-2 shadow-md'}`}>
+        <div className="px-4 py-3 border-b border-slate-200">
+          <h3 className="text-sm font-semibold text-slate-900">Randevu Oluştur / Düzenle</h3>
         </div>
         <div className="p-4 grid grid-cols-12 gap-3">
           <div className="col-span-12">
@@ -354,9 +356,9 @@ function AppointmentModal({ open, onClose, onSave, initial, rooms }) {
             <label htmlFor="sms" className="text-sm">Randevu SMS'i gönderilsin mi?</label>
                       </div>
                     </div>
-        <div className="px-4 py-3 border-t flex justify-end gap-2">
-          <button className="px-3 py-1.5 text-xs bg-gray-100 rounded hover:bg-gray-200" onClick={onClose}>İptal</button>
-          <button className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700" onClick={() => {
+        <div className="px-4 py-3 border-t border-slate-200 flex justify-end gap-2">
+          <button className="px-3 py-1.5 text-xs bg-slate-100 text-slate-700 rounded hover:bg-slate-200" onClick={onClose}>İptal</button>
+          <button className="px-3 py-1.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600" onClick={() => {
             const [hh, mm] = String(form.time || '09:00').split(':').map(Number);
             const start = new Date(form.date + 'T00:00:00');
             start.setHours(hh, mm, 0, 0);
@@ -419,7 +421,7 @@ function InteractiveSchedule({ rooms, events, onChange, startHour = 8, endHour =
   };
 
   return (
-    <div className="relative h-96 overflow-y-auto rounded-md border" ref={scrollRef}>
+    <div className="relative h-96 overflow-y-auto rounded-md border border-slate-200" ref={scrollRef}>
       <div ref={gridRef} className="min-w-[720px]">
         <div className="grid" style={{ gridTemplateColumns: `4rem repeat(${rooms.length}, minmax(0, 1fr))` }}>
           <div />
@@ -463,13 +465,13 @@ function InteractiveSchedule({ rooms, events, onChange, startHour = 8, endHour =
                   const timeCls = scale < 0.9 ? 'text-[9px]' : 'text-[10px]';
                   const padCls = scale < 0.9 ? 'px-1 py-0.5' : 'px-2 py-1';
                   const typeColor = {
-                    'Diş çekimi': 'bg-rose-100 border-rose-200 text-rose-800',
-                    'Kanal tedavisi': 'bg-indigo-100 border-indigo-200 text-indigo-800',
-                    'Dolgu': 'bg-amber-100 border-amber-200 text-amber-800',
-                    'İmplant': 'bg-emerald-100 border-emerald-200 text-emerald-800',
-                    'Kontrol': 'bg-sky-100 border-sky-200 text-sky-800',
+                    'Diş çekimi': 'bg-slate-100 border-slate-200 text-slate-800',
+                    'Kanal tedavisi': 'bg-slate-100 border-slate-200 text-slate-800',
+                    'Dolgu': 'bg-slate-100 border-slate-200 text-slate-800',
+                    'İmplant': 'bg-slate-100 border-slate-200 text-slate-800',
+                    'Kontrol': 'bg-slate-100 border-slate-200 text-slate-800',
                   }[e.type];
-                  const color = typeColor ?? (e.status === 'in_progress' ? 'bg-blue-100 border-blue-200 text-blue-800' : e.status === 'completed' ? 'bg-emerald-100 border-emerald-200 text-emerald-800' : e.status === 'cancelled' ? 'bg-red-100 border-red-200 text-red-800' : 'bg-amber-100 border-amber-200 text-amber-800');
+                  const color = typeColor ?? (e.status === 'in_progress' ? 'bg-blue-50 border-blue-200 text-blue-800' : e.status === 'completed' ? 'bg-green-50 border-green-200 text-green-800' : e.status === 'cancelled' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-slate-100 border-slate-200 text-slate-800');
                   return (
                         <div
                       key={e.id}
@@ -734,8 +736,8 @@ function TaskList({ fixedHeight = BOTTOM_CARD_PX }) {
     });
   }, [tasks, filters]);
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col" style={{ height: 'clamp(300px, 60vh, 420px)' }}>
-      <h2 className="text-sm font-semibold text-gray-900 mb-4">Görevler</h2>
+    <div className="bg-white rounded-lg border border-slate-200 p-4 flex flex-col" style={{ height: 'clamp(300px, 60vh, 420px)' }}>
+      <h2 className="text-sm font-semibold text-slate-900 mb-4">Görevler</h2>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="grid grid-cols-12 gap-2 flex-1 min-w-0 w-full sm:mr-2">
           <input className="col-span-12 lg:col-span-4 border rounded px-2 py-1 text-sm" placeholder="Tümü"
@@ -766,11 +768,11 @@ function TaskList({ fixedHeight = BOTTOM_CARD_PX }) {
             onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value }))}
           />
         </div>
-        <a href="/gorevler" className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 shrink-0">Tümünü Gör</a>
+        <a href="/gorevler" className="px-3 py-1.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 shrink-0">Tümünü Gör</a>
       </div>
       <div className="mb-3 flex items-center gap-2">
         <button
-          className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-3 py-1.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
           onClick={() => {
             const nid = `t${Date.now()}`;
             setDraft({ title: '', urgency: 'Orta', assignedTo: mockUsers[0].id });
@@ -834,7 +836,7 @@ function TaskList({ fixedHeight = BOTTOM_CARD_PX }) {
                     </div>
                     <div className="col-span-12 flex gap-2 justify-end">
                       <button
-                        className="px-3 py-1.5 text-xs bg-gray-100 rounded hover:bg-gray-200"
+                        className="px-3 py-1.5 text-xs bg-slate-100 text-slate-700 rounded hover:bg-slate-200"
                         onClick={() => {
                           // Revert creation if new and empty
                           if (task.title === '' && draft.title === '') {
@@ -846,7 +848,7 @@ function TaskList({ fixedHeight = BOTTOM_CARD_PX }) {
                         İptal
                       </button>
                       <button
-                        className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                        className="px-3 py-1.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
                         onClick={() => {
                           setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, ...draft, title: draft.title || t.title } : t)));
                           setEditingId(null);
@@ -859,7 +861,7 @@ function TaskList({ fixedHeight = BOTTOM_CARD_PX }) {
                 ) : (
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <label htmlFor={task.id} className={`text-sm ${task.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                      <label htmlFor={task.id} className={`text-sm ${task.completed ? 'line-through text-slate-400' : 'text-slate-800'}`}>
                         {task.title || 'Yeni görev'}
                       </label>
                       <div className="mt-1 flex items-center gap-3">
@@ -910,8 +912,8 @@ function ActivityFeed({ items, fixedHeight = BOTTOM_CARD_PX }) {
     });
   }, [items, filters]);
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col" style={{ height: 'clamp(300px, 60vh, 420px)' }}>
-      <h2 className="text-sm font-semibold text-gray-900 mb-4">Genel Bakış (Aktivite Akışı)</h2>
+    <div className="bg-white rounded-lg border border-slate-200 p-4 flex flex-col" style={{ height: 'clamp(300px, 60vh, 420px)' }}>
+      <h2 className="text-sm font-semibold text-slate-900 mb-4">Genel Bakış (Aktivite Akışı)</h2>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="grid grid-cols-12 gap-2 flex-1 min-w-0 w-full sm:mr-2">
           <select className="col-span-6 lg:col-span-3 border rounded px-2 py-1 text-sm" value={filters.type} onChange={(e) => setFilters((s) => ({ ...s, type: e.target.value }))}>
@@ -930,32 +932,32 @@ function ActivityFeed({ items, fixedHeight = BOTTOM_CARD_PX }) {
             <input type="date" className="border rounded px-2 py-1 text-sm" value={filters.to} onChange={(e) => setFilters((s) => ({ ...s, to: e.target.value }))} />
           </div>
         </div>
-        <a href="/aktivite" className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 shrink-0">Tümünü Gör</a>
+        <a href="/aktivite" className="px-3 py-1.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 shrink-0">Tümünü Gör</a>
       </div>
-      <ol className="relative border-l border-gray-200 ml-2 overflow-y-auto pr-1 flex-1 min-h-0">
+      <ol className="relative border-l border-slate-200 ml-2 overflow-y-auto pr-1 flex-1 min-h-0">
         {filtered.map((it, idx) => (
           <li key={idx} className="mb-5 ml-4 break-words">
-            <div className="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full bg-blue-500 border border-white" />
-            <time className="block text-xs text-gray-500 mb-1">
+            <div className="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full bg-slate-500 border border-white" />
+            <time className="block text-xs text-slate-500 mb-1">
               {it.ts.toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: undefined })}
             </time>
             {it.title ? (
                 <div>
-                <p className="text-sm font-medium text-gray-900 break-words">{it.title}</p>
+                <p className="text-sm font-medium text-slate-900 break-words">{it.title}</p>
                 {it.meta && (
-                  <div className="mt-1 text-xs text-gray-700 space-y-0.5 break-words">
+                  <div className="mt-1 text-xs text-slate-700 space-y-0.5 break-words">
                     <div>Doktor: {it.meta.doctor_from} → {it.meta.doctor_to}</div>
                     <div>Tarih: {it.meta.date}</div>
                     <div>Süre: {it.meta.duration}</div>
                     <div>Randevu Tipi: {it.meta.type}</div>
                     <div>Randevu Durumu: {it.meta.status}</div>
                     <div>Açıklama: {it.meta.note}</div>
-                    <div className="text-gray-500">Güncelleyen: {it.meta.author}</div>
+                    <div className="text-slate-500">Güncelleyen: {it.meta.author}</div>
                   </div>
                 )}
                     </div>
             ) : (
-              <p className="text-sm text-gray-800 break-words">{it.text}</p>
+              <p className="text-sm text-slate-800 break-words">{it.text}</p>
             )}
           </li>
         ))}
@@ -964,9 +966,47 @@ function ActivityFeed({ items, fixedHeight = BOTTOM_CARD_PX }) {
   );
 }
 
+// KPI Components
+function DashboardKPIs({ surgeryEvents, sterileEvents, tasks }) {
+  const activeSurgeries = surgeryEvents.filter(e => e.status === 'in_progress').length;
+  const scheduledSurgeries = surgeryEvents.filter(e => e.status === 'planned').length;
+  const completedSurgeries = surgeryEvents.filter(e => e.status === 'completed').length;
+
+  const activeSterilizations = sterileEvents.filter(e => e.status === 'in_progress').length;
+  const urgentTasks = tasks.filter(t => t.urgency === 'Kritik' || t.urgency === 'Yüksek').length;
+  const pendingTasks = tasks.filter(t => !t.completed).length;
+
+  const kpis = [
+    { label: 'Aktif Ameliyat', value: activeSurgeries, bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-700' },
+    { label: 'Planlanan', value: scheduledSurgeries, bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-700' },
+    { label: 'Tamamlanan', value: completedSurgeries, bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-700' },
+    { label: 'Aktif Sterilizasyon', value: activeSterilizations, bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-700' },
+    { label: 'Acil Görevler', value: urgentTasks, bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700' },
+    { label: 'Bekleyen Görevler', value: pendingTasks, bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-700' }
+  ];
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+      {kpis.map((kpi, index) => (
+        <div key={index} className={`${kpi.bg} ${kpi.border} rounded-lg border p-4 text-center shadow-sm hover:shadow-md transition-all duration-200`}>
+          <div className="text-2xl font-bold text-slate-900 mb-1">{kpi.value}</div>
+          <div className={`text-sm font-medium ${kpi.text}`}>{kpi.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
+
+
+
 export default function AtillaDentalDashboard() {
-  const { cases } = useSurgeryPlanningStore();
   const { cycles, events: scanEvents } = useSterilizationStore();
+
+  // Use custom hook to handle surgery planning store
+  const { store: useSurgeryStore, loading: surgeryLoading, error: surgeryError } = useSurgeryPlanning();
+  const cases = useSurgeryStore ? useSurgeryStore().cases : [];
 
   const today = new Date();
   const startOfDay = setTime(today, 8, 0);
@@ -1026,6 +1066,8 @@ export default function AtillaDentalDashboard() {
     }));
   }, [cycles, fallbackSterileEvents]);
   const [sterileEvents, setSterileEvents] = useState(initialSterileEvents);
+
+
 
   // Hydrate from localStorage on mount
   useEffect(() => {
@@ -1143,31 +1185,84 @@ export default function AtillaDentalDashboard() {
   }, [scanEvents]);
 
                         return (
-    <div className="grid grid-cols-12 gap-0.5 md:gap-1 w-full">
-      {/* Top: Randevular */}
-      <div className="col-span-12">
-        <ScheduleModule
-          surgeryRooms={surgeryRooms}
-          surgeryEvents={surgeryEvents}
-          setSurgeryEvents={setSurgeryEvents}
-          sterileRooms={sterileRooms}
-          sterileEvents={sterileEvents}
-          setSterileEvents={setSterileEvents}
-        />
-                    </div>
-      {/* Bottom: Left tasks, Right activity (equal height & alignment) */}
-      <div className="col-span-12 grid grid-cols-12 gap-0.5 md:gap-1">
-        <div className="col-span-12 lg:col-span-6 flex min-w-0">
-          <div className="flex-1">
-            <TaskListCard fixedHeight={BOTTOM_CARD_PX} />
+    <div className="min-h-screen bg-slate-50">
+      <div className="grid grid-cols-12 gap-6 md:gap-8 w-full max-w-7xl mx-auto p-6">
+
+
+
+
+
+
+        {/* Header */}
+        <div className="col-span-12">
+          <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">Atilla Dental Dashboard</h1>
+            <p className="text-slate-600">Randevu, görev ve aktivite yönetimi için merkezi kontrol paneli</p>
           </div>
         </div>
-        <div className="col-span-12 lg:col-span-6 flex min-w-0">
-          <div className="flex-1">
-            <ActivityFeedCard items={activityItems} fixedHeight={BOTTOM_CARD_PX} />
+
+        {/* Store Test */}
+        <div className="col-span-12">
+          <TestStoreComponent />
+        </div>
+
+        {/* Randevu Modülü - En Üstte Tek Başına */}
+        <div className="col-span-12">
+          <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Randevular
+              </h2>
+              <a href="/randevular" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                Tümünü Gör →
+              </a>
+            </div>
+            <DayCalendar
+              title=""
+              rooms={[...surgeryRooms.slice(0, 2), ...sterileRooms.slice(0, 1)]}
+              events={surgeryEvents.slice(0, 6)}
+              variant="card"
+            />
           </div>
         </div>
+
+        {/* Alt Satır - Görevler ve Aktivite Akışı Yan Yana */}
+        <div className="col-span-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Görevler */}
+            <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  <CheckSquare className="w-5 h-5" />
+                  Görevler
+                </h2>
+                <a href="/gorevler" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                  Tümünü Gör →
+                </a>
+              </div>
+              <TaskListCard fixedHeight={300} />
+            </div>
+
+            {/* Aktivite Akışı */}
+            <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  <Activity className="w-5 h-5" />
+                  Aktivite Akışı
+                </h2>
+                <a href="/aktivite" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                  Tümünü Gör →
+                </a>
+              </div>
+              <ActivityFeedCard items={activityItems.slice(0, 5)} fixedHeight={300} showLink={false} />
             </div>
           </div>
+        </div>
+
+
+
+      </div>
+    </div>
   );
 }

@@ -347,7 +347,7 @@ function SterilizasyonPage() {
                         <p className="text-sm text-gray-500">Tamamlandı - 09:15</p>
                       </div>
                     </div>
-                    <div className="text-sm text-green-600">✓ 5 dakika</div>
+                    <div className="text-sm text-green-600">5 dakika</div>
                   </div>
 
                   <div className="flex items-center justify-between mb-4">
@@ -360,7 +360,7 @@ function SterilizasyonPage() {
                         <p className="text-sm text-gray-500">Tamamlandı - 09:45</p>
                       </div>
                     </div>
-                    <div className="text-sm text-green-600">✓ 30 dakika</div>
+                    <div className="text-sm text-green-600">30 dakika</div>
                   </div>
 
                   <div className="flex items-center justify-between mb-4">

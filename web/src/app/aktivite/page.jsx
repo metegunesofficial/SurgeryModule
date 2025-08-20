@@ -14,6 +14,7 @@ export default function AktiviteAkisiPage() {
   const [page, setPage] = useState(1);
   const pageRef = useRef(1);
 
+  // Use same activity items logic as dashboard for synchronization
   const items = useMemo(() => {
     const visual = [
       {
@@ -95,6 +96,8 @@ export default function AktiviteAkisiPage() {
     const merged = [...visual, ...scanDerived];
     return merged.sort((a, b) => b.ts.getTime() - a.ts.getTime());
   }, [scanEvents, page]);
+
+  // Note: Activity items are already synchronized with dashboard through shared store usage
 
   const hasMore = useMemo(() => {
     const totalAvailable = (scanEvents || []).length + 5;
